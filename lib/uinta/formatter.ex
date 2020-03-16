@@ -20,18 +20,20 @@ defmodule Uinta.Formatter do
   ## Installation
 
   To use the formatter, you'll need to add it to your logger configuration. In
-  your (production) config file, look for a line that looks something like
-  this:
+  your (production) config file, see if you have a line that looks something
+  like this:
 
   ```
   config :logger, :console, format: "[$level] $message\\n"
   ```
 
-  You'll want to replace it with this:
+  If you have it, you'll want to replace it with this:
 
   ```
   config :logger, :console, format: {Uinta.Formatter, :format}
   ```
+
+  If you don't have it, you'll want to just add that line.
   """
 
   @type level :: :debug | :info | :warn | :error
@@ -100,9 +102,9 @@ defmodule Uinta.Formatter do
   @spec format_timestamp(Logger.Formatter.time()) :: String.t()
   defp format_timestamp({date, {hh, mm, ss, ms}}) do
     with erl_time <- :calendar.local_time_to_universal_time({date, {hh, mm, ss}}),
-         {:ok, unix} <- :calendar.datetime_to_gregorian_seconds(erl_time),
-         {:ok, datetime} <- DateTime.from_unix(unix + ms),
-         result <- DateTime.to_iso8601(datetime) do
+         {:ok, timestamp} <- NaiveDateTime.from_erl(erl_time, {ms * 1000, 3}),
+         {:ok, with_timezone} <- DateTime.from_naive(timestamp, "Etc/UTC"),
+         result <- DateTime.to_iso8601(with_timezone) do
       result
     end
   end
