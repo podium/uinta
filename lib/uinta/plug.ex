@@ -16,6 +16,13 @@ if Code.ensure_loaded?(Plug) do
     aggregator parse the fields. To do this, pass `json: true` in the options
     when calling the plug.
 
+    Finally, GraphQL requests will replace `POST /graphql` with the GraphQL
+    operation type and name like `QUERY getUser` or `MUTATION createUser` if an
+    operation name is provided. This will give you more visibility into your
+    GraphQL requests without having to log out the entire request body or go
+    into debug mode. If desired, the GraphQL variables can be included in the
+    log line as well.
+
     ## Installation
 
     To install this, find this line (typically in `YourApp.Endpoint`):
