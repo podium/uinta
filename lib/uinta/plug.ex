@@ -27,11 +27,13 @@ if Code.ensure_loaded?(Plug) do
     and replace it with this (using only the options you want):
 
     ```
-    plug Uinta.Plug, json: false, log: :info
+    plug Uinta.Plug, include_variables: false, json: false, log: :info
     ```
 
     ## Options
 
+    - `:include_variables` - Whether or not to include any GraphQL variables in
+    the log line when applicable. Default is `false`.
     - `:json` - Whether or not this plug should log in JSON format. Default is
     `false`
     - `:log` - The log level at which this plug should log its request info.
