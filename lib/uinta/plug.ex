@@ -34,47 +34,60 @@ if Code.ensure_loaded?(Plug) do
     and replace it with this (using only the options you want):
 
     ```
-    plug Uinta.Plug, include_variables: false, json: false, log: :info
+    plug Uinta.Plug,
+      log: :info,
+      json: false,
+      include_variables: false,
+      filter_variables: []
     ```
 
     ## Options
 
-    - `:include_variables` - Whether or not to include any GraphQL variables in
-    the log line when applicable. Default is `false`.
-    - `:json` - Whether or not this plug should log in JSON format. Default is
-    `false`
     - `:log` - The log level at which this plug should log its request info.
     Default is `:info`
+    - `:json` - Whether or not this plug should log in JSON format. Default is
+    `false`
+    - `:include_variables` - Whether or not to include any GraphQL variables in
+    the log line when applicable. Default is `false`.
+    - `:filter_variables` - A list of variable names that should be filtered
+    out from the logs. By default `password`, `passwordConfirmation`,
+    `idToken`, and `refreshToken` will be filtered.
     """
 
     require Logger
     alias Plug.Conn
     @behaviour Plug
 
+    @default_filter ~w(password passwordConfirmation idToken refreshToken)
     @type format :: :json | :string
     @type graphql_info :: %{type: String.t(), operation: String.t(), variables: String.t() | nil}
 
     @impl Plug
-    def init(opts), do: opts
+    def init(opts) do
+      format = if Keyword.get(opts, :json, false), do: :json, else: :string
+
+      %{
+        level: Keyword.get(opts, :log, :info),
+        format: format,
+        include_variables: Keyword.get(opts, :include_variables, false),
+        filter_variables: Keyword.get(opts, :filter_variables, @default_filter)
+      }
+    end
 
     @impl Plug
     def call(conn, opts) do
-      level = Keyword.get(opts, :log, :info)
-      json = if Keyword.get(opts, :json, false), do: :json, else: :string
-      include_variables = Keyword.get(opts, :include_variables, false)
-
       start = System.monotonic_time()
 
       Conn.register_before_send(conn, fn conn ->
-        Logger.log(level, fn ->
-          graphql_info = graphql_info(conn, include_variables)
+        Logger.log(opts.level, fn ->
+          graphql_info = graphql_info(conn, opts)
 
           stop = System.monotonic_time()
           diff = System.convert_time_unit(stop - start, :native, :microsecond)
 
-          request = format_request(conn, graphql_info, json)
-          response = format_response(conn, diff, json)
-          format_line(request, response, json)
+          request = format_request(conn, graphql_info, opts.format)
+          response = format_response(conn, diff, opts.format)
+          format_line(request, response, opts.format)
         end)
 
         conn
@@ -128,14 +141,15 @@ if Code.ensure_loaded?(Plug) do
       [connection_type(conn), ?\s, Integer.to_string(conn.status), " in ", formatted_diff(diff)]
     end
 
-    @spec graphql_info(Plug.Conn.t(), boolean()) :: graphql_info() | nil
-    defp graphql_info(%{method: "POST", params: params}, include_variables) do
+    @spec graphql_info(Plug.Conn.t(), map()) :: graphql_info() | nil
+    defp graphql_info(%{method: "POST", params: params}, opts) do
       operation = params["operationName"]
       variables = params["variables"]
 
       encoded_variables =
-        with true <- include_variables,
-             {:ok, encoded} <- Jason.encode(variables) do
+        with true <- opts.include_variables,
+             filtered = filter_variables(variables, opts.filter_variables),
+             {:ok, encoded} <- Jason.encode(filtered) do
           encoded
         else
           _ -> nil
@@ -155,6 +169,22 @@ if Code.ensure_loaded?(Plug) do
     end
 
     defp graphql_info(_, _), do: nil
+
+    @spec filter_variables(map(), list(String.t())) :: map()
+    defp filter_variables(variables, to_filter) do
+      variables
+      |> Enum.map(&filter(&1, to_filter))
+      |> Enum.into(%{})
+    end
+
+    @spec filter({String.t(), term()}, list(String.t())) :: {String.t(), term()}
+    defp filter({key, value}, to_filter) do
+      if key in to_filter do
+        {key, "[FILTERED]"}
+      else
+        {key, value}
+      end
+    end
 
     @spec formatted_diff(integer()) :: list(String.t())
     defp formatted_diff(diff) when diff > 1000,

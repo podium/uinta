@@ -31,7 +31,7 @@ defmodule Uinta.PlugTest do
   defmodule IncludeVariablesPlug do
     use Plug.Builder
 
-    plug(Uinta.Plug, include_variables: true, json: true)
+    plug(Uinta.Plug, include_variables: true, filter_variables: ~w(password))
     plug(:passthrough)
 
     defp passthrough(conn, _) do
@@ -156,5 +156,22 @@ defmodule Uinta.PlugTest do
       end)
 
     assert message =~ "with {\"user_uid\":\"b1641ddf-b7b0-445e-bcbb-96ef359eae81\"}"
+  end
+
+  test "filters variables when applicable" do
+    variables = %{
+      "user_uid" => "b1641ddf-b7b0-445e-bcbb-96ef359eae81",
+      "password" => "password123"
+    }
+
+    params = %{"operationName" => "getUser", "query" => "query getUser", "variables" => variables}
+
+    message =
+      capture_log(fn ->
+        IncludeVariablesPlug.call(conn(:post, "/graphql", params), [])
+      end)
+
+    assert message =~
+             "with {\"password\":\"[FILTERED]\",\"user_uid\":\"b1641ddf-b7b0-445e-bcbb-96ef359eae81\"}"
   end
 end
