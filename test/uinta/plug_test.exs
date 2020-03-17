@@ -13,8 +13,7 @@ defmodule Uinta.PlugTest do
     plug(:passthrough)
 
     defp passthrough(conn, _) do
-      %{conn | params: %{}}
-      |> Plug.Conn.send_resp(200, "Passthrough")
+      Plug.Conn.send_resp(conn, 200, "Passthrough")
     end
   end
 
@@ -25,8 +24,18 @@ defmodule Uinta.PlugTest do
     plug(:passthrough)
 
     defp passthrough(conn, _) do
-      %{conn | params: %{}}
-      |> Plug.Conn.send_resp(200, "Passthrough")
+      Plug.Conn.send_resp(conn, 200, "Passthrough")
+    end
+  end
+
+  defmodule IncludeVariablesPlug do
+    use Plug.Builder
+
+    plug(Uinta.Plug, include_variables: true, json: true)
+    plug(:passthrough)
+
+    defp passthrough(conn, _) do
+      Plug.Conn.send_resp(conn, 200, "Passthrough")
     end
   end
 
@@ -37,8 +46,7 @@ defmodule Uinta.PlugTest do
     plug(:passthrough)
 
     defp passthrough(conn, _) do
-      %{conn | params: %{}}
-      |> Plug.Conn.send_chunked(200)
+      Plug.Conn.send_chunked(conn, 200)
     end
   end
 
@@ -56,8 +64,7 @@ defmodule Uinta.PlugTest do
     plug(:passthrough)
 
     defp passthrough(conn, _) do
-      %{conn | params: %{}}
-      |> Plug.Conn.send_resp(200, "Passthrough")
+      Plug.Conn.send_resp(conn, 200, "Passthrough")
     end
   end
 
@@ -77,6 +84,18 @@ defmodule Uinta.PlugTest do
     assert message =~ ~r"\[info\]  GET /hello/world - Sent 200 in [0-9]+[µm]s"u
   end
 
+  test "logs proper graphql message to console" do
+    variables = %{"user_uid" => "b1641ddf-b7b0-445e-bcbb-96ef359eae81"}
+    params = %{"operationName" => "getUser", "query" => "query getUser", "variables" => variables}
+
+    message =
+      capture_log(fn ->
+        MyPlug.call(conn(:post, "/graphql", params), [])
+      end)
+
+    assert message =~ ~r"\[info\]  QUERY getUser - Sent 200 in [0-9]+[µm]s"u
+  end
+
   test "logs proper json to console" do
     message =
       capture_log(fn ->
@@ -85,6 +104,19 @@ defmodule Uinta.PlugTest do
 
     assert message =~
              ~r"{\"method\":\"GET\",\"path\":\"/\",\"status\":\"200\",\"timing\":\"[0-9]+[µm]s\"}"u
+  end
+
+  test "logs graphql json to console" do
+    variables = %{"user_uid" => "b1641ddf-b7b0-445e-bcbb-96ef359eae81"}
+    params = %{"operationName" => "getUser", "query" => "query getUser", "variables" => variables}
+
+    message =
+      capture_log(fn ->
+        JsonPlug.call(conn(:post, "/graphql", params), [])
+      end)
+
+    assert message =~
+             ~r"{\"method\":\"QUERY\",\"path\":\"getUser\",\"status\":\"200\",\"timing\":\"[0-9]+[µm]s\"}"u
   end
 
   test "logs paths with double slashes and trailing slash" do
@@ -112,5 +144,17 @@ defmodule Uinta.PlugTest do
       end)
 
     assert message =~ ~r"\[debug\] GET / - Sent 200 in [0-9]+[µm]s"u
+  end
+
+  test "includes variables when applicable" do
+    variables = %{"user_uid" => "b1641ddf-b7b0-445e-bcbb-96ef359eae81"}
+    params = %{"operationName" => "getUser", "query" => "query getUser", "variables" => variables}
+
+    message =
+      capture_log(fn ->
+        IncludeVariablesPlug.call(conn(:post, "/graphql", params), [])
+      end)
+
+    assert message =~ "with {\"user_uid\":\"b1641ddf-b7b0-445e-bcbb-96ef359eae81\"}"
   end
 end
