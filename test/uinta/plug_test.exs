@@ -158,6 +158,20 @@ defmodule Uinta.PlugTest do
     assert message =~ "with {\"user_uid\":\"b1641ddf-b7b0-445e-bcbb-96ef359eae81\"}"
   end
 
+  test "doesn't try to include variables on non-graphql requests" do
+    message = capture_log(fn -> IncludeVariablesPlug.call(conn(:post, "/", %{}), []) end)
+    refute message =~ "with"
+  end
+
+  test "doesn't try to include variables when none were given" do
+    params = %{"operationName" => "getUser", "query" => "query getUser"}
+
+    message =
+      capture_log(fn -> IncludeVariablesPlug.call(conn(:post, "/graphql", params), []) end)
+
+    refute message =~ "with"
+  end
+
   test "filters variables when applicable" do
     variables = %{
       "user_uid" => "b1641ddf-b7b0-445e-bcbb-96ef359eae81",

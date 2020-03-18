@@ -144,16 +144,6 @@ if Code.ensure_loaded?(Plug) do
     @spec graphql_info(Plug.Conn.t(), map()) :: graphql_info() | nil
     defp graphql_info(%{method: "POST", params: params}, opts) do
       operation = params["operationName"]
-      variables = params["variables"]
-
-      encoded_variables =
-        with true <- opts.include_variables,
-             filtered = filter_variables(variables, opts.filter_variables),
-             {:ok, encoded} <- Jason.encode(filtered) do
-          encoded
-        else
-          _ -> nil
-        end
 
       type =
         params
@@ -161,10 +151,17 @@ if Code.ensure_loaded?(Plug) do
         |> String.trim()
         |> query_type()
 
-      if !is_nil(type) && !is_nil(operation) do
-        %{type: type, operation: operation, variables: encoded_variables}
+      info = %{type: type, operation: operation}
+
+      with {:is_nil, false} <- {:is_nil, is_nil(type) || is_nil(operation)},
+           true <- opts.include_variables,
+           variables when is_map(variables) <- params["variables"],
+           filtered = filter_variables(variables, opts.filter_variables),
+           {:ok, encoded} <- Jason.encode(filtered) do
+        Map.put(info, :variables, encoded)
       else
-        nil
+        {:is_nil, true} -> nil
+        _ -> info
       end
     end
 
