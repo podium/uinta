@@ -21,7 +21,7 @@ if Code.ensure_loaded?(Plug) do
     operation name is provided. This will give you more visibility into your
     GraphQL requests without having to log out the entire request body or go
     into debug mode. If desired, the GraphQL variables can be included in the
-    log line as well.
+    log line as well. The query can also be included if unnamed.
 
     ## Installation
 
@@ -52,6 +52,8 @@ if Code.ensure_loaded?(Plug) do
     - `:filter_variables` - A list of variable names that should be filtered
     out from the logs. By default `password`, `passwordConfirmation`,
     `idToken`, and `refreshToken` will be filtered.
+    - `:include_unnamed_queries` - Whether or not to include the full query
+    body for queries with no name supplied
     """
 
     require Logger
@@ -59,8 +61,17 @@ if Code.ensure_loaded?(Plug) do
     @behaviour Plug
 
     @default_filter ~w(password passwordConfirmation idToken refreshToken)
+    @query_name_regex ~r/^(?:(?:query|mutation)\s+(\w+)(?:\(\$\w+:\s+\w+!?(?:,\s+\$\w+:\s+\w+!?)*\))?\s*)?{/
+
     @type format :: :json | :string
     @type graphql_info :: %{type: String.t(), operation: String.t(), variables: String.t() | nil}
+    @type opts :: %{
+            level: Logger.level(),
+            format: format(),
+            include_unnamed_queries: boolean(),
+            include_variables: boolean(),
+            filter_variables: list(String.t())
+          }
 
     @impl Plug
     def init(opts) do
@@ -69,6 +80,7 @@ if Code.ensure_loaded?(Plug) do
       %{
         level: Keyword.get(opts, :log, :info),
         format: format,
+        include_unnamed_queries: Keyword.get(opts, :include_unnamed_queries, false),
         include_variables: Keyword.get(opts, :include_variables, false),
         filter_variables: Keyword.get(opts, :filter_variables, @default_filter)
       }
@@ -80,30 +92,51 @@ if Code.ensure_loaded?(Plug) do
 
       Conn.register_before_send(conn, fn conn ->
         Logger.log(opts.level, fn ->
-          graphql_info = graphql_info(conn, opts)
-
           stop = System.monotonic_time()
           diff = System.convert_time_unit(stop - start, :native, :microsecond)
 
-          request = format_request(conn, graphql_info, opts.format)
-          response = format_response(conn, diff, opts.format)
-          format_line(request, response, opts.format)
+          graphql_info = graphql_info(conn, opts)
+          info = info(conn, graphql_info, diff, opts)
+
+          format_line(info, opts.format)
         end)
 
         conn
       end)
     end
 
-    @spec format_line(iodata() | map(), iodata() | map(), format()) :: iodata()
-    defp format_line(request, response, :string), do: [request, " - ", response]
+    @spec info(Plug.Conn.t(), graphql_info(), integer(), opts()) :: map()
+    defp info(conn, graphql_info, diff, opts) do
+      %{
+        connection_type: connection_type(conn),
+        method: method(conn, graphql_info),
+        path: path(conn, graphql_info),
+        query: query(graphql_info, opts),
+        status: Integer.to_string(conn.status),
+        timing: formatted_diff(diff),
+        variables: variables(graphql_info)
+      }
+    end
 
-    defp format_line(request, response, :json) do
-      info = Map.merge(request, response)
+    @spec format_line(map(), format()) :: iodata()
+    defp format_line(info, :json) do
+      info =
+        info
+        |> Map.delete(:connection_type)
+        |> Enum.filter(fn {_, value} -> !is_nil(value) end)
+        |> Enum.into(%{})
 
       case Jason.encode(info) do
         {:ok, encoded} -> encoded
         _ -> inspect(info)
       end
+    end
+
+    defp format_line(info, :string) do
+      log = [info.method, ?\s, info.path]
+      log = if is_nil(info.variables), do: log, else: [log, " with ", info.variables]
+      log = [log, " - ", info.connection_type, ?\s, info.status, " in ", info.timing]
+      if is_nil(info.query), do: log, else: [log, "\nQuery: ", info.query]
     end
 
     @spec method(Plug.Conn.t(), graphql_info()) :: String.t()
@@ -114,58 +147,59 @@ if Code.ensure_loaded?(Plug) do
     defp path(_, %{operation: operation}), do: operation
     defp path(conn, _), do: conn.request_path
 
+    @spec query(graphql_info(), opts()) :: String.t() | nil
+    defp query(_, %{include_unnamed_queries: false}), do: nil
+    defp query(%{query: query}, _), do: query
+    defp query(_, _), do: nil
+
     @spec variables(graphql_info() | nil) :: String.t() | nil
     defp variables(%{variables: variables}), do: variables
     defp variables(_), do: nil
 
-    @spec format_request(Plug.Conn.t(), graphql_info(), format()) :: iodata() | map()
-    defp format_request(conn, graphql_info, :json) do
-      log = %{method: method(conn, graphql_info), path: path(conn, graphql_info)}
-      variables = variables(graphql_info)
-      if is_nil(variables), do: log, else: Map.put(log, :variables, variables)
-    end
-
-    defp format_request(conn, graphql_info, :string) do
-      log = [method(conn, graphql_info), ?\s, path(conn, graphql_info)]
-      variables = variables(graphql_info)
-      if is_nil(variables), do: log, else: [log, " with ", variables]
-    end
-
-    @spec format_response(Plug.Conn.t(), list(String.t()), format()) :: iodata() | map()
-    defp format_response(conn, diff, :json) do
-      timing = diff |> formatted_diff() |> Enum.join()
-      %{status: Integer.to_string(conn.status), timing: timing}
-    end
-
-    defp format_response(conn, diff, :string) do
-      [connection_type(conn), ?\s, Integer.to_string(conn.status), " in ", formatted_diff(diff)]
-    end
-
-    @spec graphql_info(Plug.Conn.t(), map()) :: graphql_info() | nil
+    @spec graphql_info(Plug.Conn.t(), opts()) :: graphql_info() | nil
     defp graphql_info(%{method: "POST", params: params}, opts) do
-      operation = params["operationName"]
-
       type =
-        params
-        |> Map.get("query", "")
+        params["query"]
+        |> Kernel.||("")
         |> String.trim()
         |> query_type()
 
-      info = %{type: type, operation: operation}
-
-      with {:is_nil, false} <- {:is_nil, is_nil(type) || is_nil(operation)},
-           true <- opts.include_variables,
-           variables when is_map(variables) <- params["variables"],
-           filtered = filter_variables(variables, opts.filter_variables),
-           {:ok, encoded} <- Jason.encode(filtered) do
-        Map.put(info, :variables, encoded)
+      if is_nil(type) do
+        nil
       else
-        {:is_nil, true} -> nil
-        _ -> info
+        %{type: type}
+        |> put_operation_name(params)
+        |> put_query(params["query"], opts)
+        |> put_variables(params["variables"], opts)
       end
     end
 
     defp graphql_info(_, _), do: nil
+
+    @spec put_operation_name(map(), map()) :: map()
+    defp put_operation_name(info, params) do
+      operation = operation_name(params)
+      Map.put(info, :operation, operation)
+    end
+
+    @spec put_query(map(), String.t(), opts()) :: map()
+    defp put_query(%{operation: "unnamed"} = info, query, %{include_unnamed_queries: true}),
+      do: Map.put(info, :query, query)
+
+    defp put_query(info, _query, _opts), do: info
+
+    @spec put_variables(map(), any(), opts()) :: map()
+    defp put_variables(info, _variables, %{include_variables: false}), do: info
+    defp put_variables(info, variables, _) when not is_map(variables), do: info
+
+    defp put_variables(info, variables, opts) do
+      filtered = filter_variables(variables, opts.filter_variables)
+
+      case Jason.encode(filtered) do
+        {:ok, encoded} -> Map.put(info, :variables, encoded)
+        _ -> info
+      end
+    end
 
     @spec filter_variables(map(), list(String.t())) :: map()
     defp filter_variables(variables, to_filter) do
@@ -184,18 +218,32 @@ if Code.ensure_loaded?(Plug) do
     end
 
     @spec formatted_diff(integer()) :: list(String.t())
-    defp formatted_diff(diff) when diff > 1000,
-      do: [diff |> div(1000) |> Integer.to_string(), "ms"]
+    defp formatted_diff(diff) when diff > 1000 do
+      "#{diff |> div(1000) |> Integer.to_string()}ms"
+    end
 
-    defp formatted_diff(diff), do: [Integer.to_string(diff), "µs"]
+    defp formatted_diff(diff), do: "#{Integer.to_string(diff)}µs"
 
     @spec connection_type(Plug.Conn.t()) :: String.t()
     defp connection_type(%{state: :set_chunked}), do: "Chunked"
     defp connection_type(_), do: "Sent"
 
+    @spec operation_name(String.t()) :: String.t() | nil
+    defp operation_name(%{"operationName" => name}), do: name
+
+    defp operation_name(%{"query" => query}) do
+      case Regex.run(@query_name_regex, query, capture: :all_but_first) do
+        [query_name] -> query_name
+        _ -> "unnamed"
+      end
+    end
+
+    defp operation_name(_), do: "unnamed"
+
     @spec query_type(term()) :: String.t() | nil
     defp query_type("query" <> _), do: "QUERY"
     defp query_type("mutation" <> _), do: "MUTATION"
+    defp query_type("{" <> _), do: "QUERY"
     defp query_type(_), do: nil
   end
 end

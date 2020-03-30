@@ -39,6 +39,17 @@ defmodule Uinta.PlugTest do
     end
   end
 
+  defmodule IncludeUnnamedQueriesPlug do
+    use Plug.Builder
+
+    plug(Uinta.Plug, include_unnamed_queries: true)
+    plug(:passthrough)
+
+    defp passthrough(conn, _) do
+      Plug.Conn.send_resp(conn, 200, "Passthrough")
+    end
+  end
+
   defmodule MyChunkedPlug do
     use Plug.Builder
 
@@ -187,5 +198,44 @@ defmodule Uinta.PlugTest do
 
     assert message =~
              "with {\"password\":\"[FILTERED]\",\"user_uid\":\"b1641ddf-b7b0-445e-bcbb-96ef359eae81\"}"
+  end
+
+  test "gets the GraphQL operation name from the query when it isn't in a separate param" do
+    query = """
+    mutation CreateReviewForEpisode($ep: Episode!, $review: ReviewInput!) {
+      createReview(episode: $ep, review: $review) {
+        stars
+        commentary
+      }
+    }
+    """
+
+    variables = %{
+      "ep" => "JEDI",
+      review: %{"stars" => 5, "commentary" => "This is a great movie!"}
+    }
+
+    params = %{"query" => query, "variables" => variables}
+
+    message = capture_log(fn -> MyPlug.call(conn(:post, "/graphql", params), []) end)
+    assert message =~ "MUTATION CreateReviewForEpisode"
+  end
+
+  test "includes the query when it isn't named" do
+    query = """
+    {
+      hero {
+        name
+      }
+    }
+    """
+
+    params = %{"query" => query}
+
+    message =
+      capture_log(fn -> IncludeUnnamedQueriesPlug.call(conn(:post, "/graphql", params), []) end)
+
+    assert message =~ "QUERY unnamed"
+    assert message =~ "hero {"
   end
 end
