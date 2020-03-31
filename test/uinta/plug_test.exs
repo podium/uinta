@@ -212,13 +212,34 @@ defmodule Uinta.PlugTest do
 
     variables = %{
       "ep" => "JEDI",
-      review: %{"stars" => 5, "commentary" => "This is a great movie!"}
+      "review" => %{"stars" => 5, "commentary" => "This is a great movie!"}
     }
 
     params = %{"query" => query, "variables" => variables}
 
     message = capture_log(fn -> MyPlug.call(conn(:post, "/graphql", params), []) end)
     assert message =~ "MUTATION CreateReviewForEpisode"
+  end
+
+  test "gets the GraphQL operation name from the query when there is an array parameter" do
+    query = """
+    mutation track($userId: String!, $event: String!, $properties: [String]) { 
+      track(userId: $userId, event: $event, properties: $properties) { 
+        status 
+      } 
+    }
+    """
+
+    variables = %{
+      "userId" => "55203f63-0b79-426c-840e-ea68bdac765c",
+      "event" => "WEBSITE_WIDGET_PROMPT_SHOW",
+      "properties" => ["green", "firefox"]
+    }
+
+    params = %{"query" => query, "variables" => variables}
+
+    message = capture_log(fn -> MyPlug.call(conn(:post, "/graphql", params), []) end)
+    assert message =~ "MUTATION track"
   end
 
   test "includes the query when it isn't named" do

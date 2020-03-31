@@ -61,7 +61,7 @@ if Code.ensure_loaded?(Plug) do
     @behaviour Plug
 
     @default_filter ~w(password passwordConfirmation idToken refreshToken)
-    @query_name_regex ~r/^(?:(?:query|mutation)\s+(\w+)(?:\(\$\w+:\s+\w+!?(?:,\s+\$\w+:\s+\w+!?)*\))?\s*)?{/
+    @query_name_regex ~r/^(?:(?:query|mutation)\s+(\w+)(?:\(\$\w+:\s+\[?\w+\]?!?(?:,\s+\$\w+:\s+\[?\w+\]?!?)*\))?\s*)?{/
 
     @type format :: :json | :string
     @type graphql_info :: %{type: String.t(), operation: String.t(), variables: String.t() | nil}
