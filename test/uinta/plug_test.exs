@@ -242,6 +242,27 @@ defmodule Uinta.PlugTest do
     assert message =~ "MUTATION track"
   end
 
+  test "gets the GraphQL operation name from the query when it uses no commas and has whitespace in the parameters" do
+    query = """
+    mutation CreateReviewForEpisode( $ep: Episode! $review: ReviewInput! ) {
+      createReview(episode: $ep, review: $review) {
+        stars
+        commentary
+      }
+    }
+    """
+
+    variables = %{
+      "ep" => "JEDI",
+      "review" => %{"stars" => 5, "commentary" => "This is a great movie!"}
+    }
+
+    params = %{"query" => query, "variables" => variables}
+
+    message = capture_log(fn -> MyPlug.call(conn(:post, "/graphql", params), []) end)
+    assert message =~ "MUTATION CreateReviewForEpisode"
+  end
+
   test "includes the query when it isn't named" do
     query = """
     {
