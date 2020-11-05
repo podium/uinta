@@ -28,6 +28,28 @@ defmodule Uinta.PlugTest do
     end
   end
 
+  defmodule IgnoredPathsPlug do
+    use Plug.Builder
+
+    plug(Uinta.Plug, ignored_paths: ["/ignore"])
+    plug(:passthrough)
+
+    defp passthrough(conn, _) do
+      Plug.Conn.send_resp(conn, 200, "Passthrough")
+    end
+  end
+
+  defmodule IgnoredPathsErrorPlug do
+    use Plug.Builder
+
+    plug(Uinta.Plug, ignored_paths: ["/ignore"])
+    plug(:passthrough)
+
+    defp passthrough(conn, _) do
+      Plug.Conn.send_resp(conn, 500, "Passthrough")
+    end
+  end
+
   defmodule IncludeVariablesPlug do
     use Plug.Builder
 
@@ -155,6 +177,24 @@ defmodule Uinta.PlugTest do
       end)
 
     assert message =~ ~r"\[debug\] GET / - Sent 200 in [0-9]+[µm]s"u
+  end
+
+  test "ignores ignored_paths when a 200-level status is returned" do
+    message =
+      capture_log(fn ->
+        IgnoredPathsPlug.call(conn(:post, "/ignore", []), [])
+      end)
+
+    refute message =~ "Sent 200"
+  end
+
+  test "logs ignored_paths when an error status is returned" do
+    message =
+      capture_log(fn ->
+        IgnoredPathsErrorPlug.call(conn(:post, "/ignore", []), [])
+      end)
+
+    assert message =~ "[info]  POST /ignore - Sent 500"
   end
 
   test "includes variables when applicable" do
