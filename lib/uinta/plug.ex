@@ -16,6 +16,12 @@ if Code.ensure_loaded?(Plug) do
     aggregator parse the fields. To do this, pass `json: true` in the options
     when calling the plug.
 
+    You will also gain the ability to not log certain paths that are requested,
+    as long as those paths return a 200-level status code. This can be
+    particularly useful for things like not showing health checks in your logs
+    to cut down on noise. To do this, just pass `ignored_paths:
+    ["/path_to_ignore"]` in the options.
+
     Finally, GraphQL requests will replace `POST /graphql` with the GraphQL
     operation type and name like `QUERY getUser` or `MUTATION createUser` if an
     operation name is provided. This will give you more visibility into your
@@ -47,6 +53,8 @@ if Code.ensure_loaded?(Plug) do
     Default is `:info`
     - `:json` - Whether or not this plug should log in JSON format. Default is
     `false`
+    - `:ignored_paths` - A list of paths that should not log requests. Default
+    is `[]`.
     - `:include_variables` - Whether or not to include any GraphQL variables in
     the log line when applicable. Default is `false`.
     - `:filter_variables` - A list of variable names that should be filtered
@@ -70,6 +78,7 @@ if Code.ensure_loaded?(Plug) do
             format: format(),
             include_unnamed_queries: boolean(),
             include_variables: boolean(),
+            ignored_paths: list(String.t()),
             filter_variables: list(String.t())
           }
 
@@ -80,6 +89,7 @@ if Code.ensure_loaded?(Plug) do
       %{
         level: Keyword.get(opts, :log, :info),
         format: format,
+        ignored_paths: Keyword.get(opts, :ignored_paths, []),
         include_unnamed_queries: Keyword.get(opts, :include_unnamed_queries, false),
         include_variables: Keyword.get(opts, :include_variables, false),
         filter_variables: Keyword.get(opts, :filter_variables, @default_filter)
@@ -91,15 +101,17 @@ if Code.ensure_loaded?(Plug) do
       start = System.monotonic_time()
 
       Conn.register_before_send(conn, fn conn ->
-        Logger.log(opts.level, fn ->
-          stop = System.monotonic_time()
-          diff = System.convert_time_unit(stop - start, :native, :microsecond)
+        if conn.request_path not in opts.ignored_paths || conn.status >= 300 do
+          Logger.log(opts.level, fn ->
+            stop = System.monotonic_time()
+            diff = System.convert_time_unit(stop - start, :native, :microsecond)
 
-          graphql_info = graphql_info(conn, opts)
-          info = info(conn, graphql_info, diff, opts)
+            graphql_info = graphql_info(conn, opts)
+            info = info(conn, graphql_info, diff, opts)
 
-          format_line(info, opts.format)
-        end)
+            format_line(info, opts.format)
+          end)
+        end
 
         conn
       end)
