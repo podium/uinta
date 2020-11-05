@@ -31,20 +31,37 @@ if Code.ensure_loaded?(Plug) do
 
     ## Installation
 
-    To install this, find this line (typically in `YourApp.Endpoint`):
+    Installation of the plug will depend on how your app currently logs requests.
+    Open `YourApp.Endpoint` and look for the following line:
 
     ```
     plug Plug.Logger
     ```
 
-    and replace it with this (using only the options you want):
+    If it exists in your endpoint, replace it with this (using the options you
+    want):
 
     ```
     plug Uinta.Plug,
       log: :info,
       json: false,
       include_variables: false,
+      ignored_paths: [],
       filter_variables: []
+    ```
+
+    If your endpoint didn't call `Plug.Logger`, add the above line above the line
+    that looks like this:
+
+    ```
+    plug Plug.RequestId
+    ```
+
+    Now you will also want to add the following anywhere in your main config file to
+    make sure that you aren't logging each request twice:
+
+    ```
+    config :phoenix, logger: false
     ```
 
     ## Options
