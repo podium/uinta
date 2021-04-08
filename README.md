@@ -43,7 +43,7 @@ The package can be installed by adding `uinta` to your list of dependencies in
 ```elixir
 def deps do
   [
-    {:uinta, "~> 0.5"}
+    {:uinta, "~> 0.6"}
   ]
 end
 ```

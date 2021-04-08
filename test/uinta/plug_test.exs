@@ -136,7 +136,7 @@ defmodule Uinta.PlugTest do
       end)
 
     assert message =~
-             ~r"{\"method\":\"GET\",\"path\":\"/\",\"status\":\"200\",\"timing\":\"[0-9]+[µm]s\"}"u
+             ~r"{\"duration_ms\":[0-9]+,\"method\":\"GET\",\"path\":\"/\",\"status\":\"200\",\"timing\":\"[0-9]+[µm]s\"}"u
   end
 
   test "logs graphql json to console" do
@@ -149,7 +149,7 @@ defmodule Uinta.PlugTest do
       end)
 
     assert message =~
-             ~r"{\"method\":\"QUERY\",\"path\":\"getUser\",\"status\":\"200\",\"timing\":\"[0-9]+[µm]s\"}"u
+             ~r"{\"duration_ms\":[0-9]+,\"method\":\"QUERY\",\"path\":\"getUser\",\"status\":\"200\",\"timing\":\"[0-9]+[µm]s\"}"u
   end
 
   test "logs paths with double slashes and trailing slash" do
@@ -263,10 +263,10 @@ defmodule Uinta.PlugTest do
 
   test "gets the GraphQL operation name from the query when there is an array parameter" do
     query = """
-    mutation track($userId: String!, $event: String!, $properties: [String]) { 
-      track(userId: $userId, event: $event, properties: $properties) { 
-        status 
-      } 
+    mutation track($userId: String!, $event: String!, $properties: [String]) {
+      track(userId: $userId, event: $event, properties: $properties) {
+        status
+      }
     }
     """
 
