@@ -143,7 +143,7 @@ if Code.ensure_loaded?(Plug) do
         query: query(graphql_info, opts),
         status: Integer.to_string(conn.status),
         timing: formatted_diff(diff),
-        duration_ms: diff,
+        duration_ms: diff / 1000,
         variables: variables(graphql_info)
       }
     end
