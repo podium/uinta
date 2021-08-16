@@ -104,7 +104,7 @@ defmodule Uinta.PlugTest do
   defmodule SampleSuccessPlug do
     use Plug.Builder
 
-    plug(Uinta.Plug, success_log_sampling_percent: 0)
+    plug(Uinta.Plug, success_log_sampling_ratio: 0)
     plug(:passthrough)
 
     defp passthrough(conn, _) do

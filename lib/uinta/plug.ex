@@ -86,7 +86,7 @@ if Code.ensure_loaded?(Plug) do
     @behaviour Plug
 
     @default_filter ~w(password passwordConfirmation idToken refreshToken)
-    @default_sampling_percent 1.0
+    @default_sampling_ratio 1.0
 
     @query_name_regex ~r/^(?:(?:query|mutation)\s+(\w+)(?:\(\s*\$\w+:\s+\[?\w+\]?!?(?:,?\s+\$\w+:\s+\[?\w+\]?!?)*\s*\))?\s*)?{/
 
@@ -112,11 +112,11 @@ if Code.ensure_loaded?(Plug) do
         include_unnamed_queries: Keyword.get(opts, :include_unnamed_queries, false),
         include_variables: Keyword.get(opts, :include_variables, false),
         filter_variables: Keyword.get(opts, :filter_variables, @default_filter),
-        success_log_sampling_percent:
+        success_log_sampling_ratio:
           Keyword.get(
             opts,
-            :success_log_sampling_percent,
-            @default_sampling_percent
+            :success_log_sampling_ratio,
+            @default_sampling_ratio
           )
       }
     end
@@ -129,7 +129,7 @@ if Code.ensure_loaded?(Plug) do
         # Log successful request if path is not filtered based on the sampling pool
         # or log all HTTP status >= 300 (usually errors)
         if (conn.request_path not in opts.ignored_paths &&
-              should_log?(opts[:success_log_sampling_percent])) ||
+              should_log?(opts[:success_log_sampling_ratio])) ||
              conn.status >= 300 do
           Logger.log(opts.level, fn ->
             stop = System.monotonic_time()
