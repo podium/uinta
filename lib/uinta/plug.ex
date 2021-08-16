@@ -86,6 +86,8 @@ if Code.ensure_loaded?(Plug) do
     @behaviour Plug
 
     @default_filter ~w(password passwordConfirmation idToken refreshToken)
+    @default_sampling_percent 100
+
     @query_name_regex ~r/^(?:(?:query|mutation)\s+(\w+)(?:\(\s*\$\w+:\s+\[?\w+\]?!?(?:,?\s+\$\w+:\s+\[?\w+\]?!?)*\s*\))?\s*)?{/
 
     @type format :: :json | :string
@@ -109,7 +111,13 @@ if Code.ensure_loaded?(Plug) do
         ignored_paths: Keyword.get(opts, :ignored_paths, []),
         include_unnamed_queries: Keyword.get(opts, :include_unnamed_queries, false),
         include_variables: Keyword.get(opts, :include_variables, false),
-        filter_variables: Keyword.get(opts, :filter_variables, @default_filter)
+        filter_variables: Keyword.get(opts, :filter_variables, @default_filter),
+        success_log_sampling_percent:
+          Keyword.get(
+            opts,
+            :success_log_sampling_percent,
+            @default_sampling_percent
+          )
       }
     end
 
@@ -118,7 +126,11 @@ if Code.ensure_loaded?(Plug) do
       start = System.monotonic_time()
 
       Conn.register_before_send(conn, fn conn ->
-        if conn.request_path not in opts.ignored_paths || conn.status >= 300 do
+        # Log successful request if path is not filtered based on the sampling pool
+        # or log all HTTP status >= 300 (usually errors)
+        if (conn.request_path not in opts.ignored_paths &&
+              should_log?(opts[:success_log_sampling_percent])) ||
+             conn.status >= 300 do
           Logger.log(opts.level, fn ->
             stop = System.monotonic_time()
             diff = System.convert_time_unit(stop - start, :native, :microsecond)
@@ -275,5 +287,18 @@ if Code.ensure_loaded?(Plug) do
     defp query_type("mutation" <> _), do: "MUTATION"
     defp query_type("{" <> _), do: "QUERY"
     defp query_type(_), do: nil
+
+    defp should_log?(ratio) do
+      random_float() <= ratio
+    end
+
+    # Returns a float (4 digit precision) between 0.0 and 1.0
+    #
+    # Alternative:
+    # :crypto.rand_uniform(1, 10_000) / 10_000
+    #
+    defp random_float do
+      :rand.uniform(10_000) / 10_000
+    end
   end
 end
