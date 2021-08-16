@@ -86,7 +86,7 @@ if Code.ensure_loaded?(Plug) do
     @behaviour Plug
 
     @default_filter ~w(password passwordConfirmation idToken refreshToken)
-    @default_sampling_percent 100
+    @default_sampling_percent 1.0
 
     @query_name_regex ~r/^(?:(?:query|mutation)\s+(\w+)(?:\(\s*\$\w+:\s+\[?\w+\]?!?(?:,?\s+\$\w+:\s+\[?\w+\]?!?)*\s*\))?\s*)?{/
 
