@@ -126,11 +126,7 @@ if Code.ensure_loaded?(Plug) do
       start = System.monotonic_time()
 
       Conn.register_before_send(conn, fn conn ->
-        # Log successful request if path is not filtered based on the sampling pool
-        # or log all HTTP status >= 300 (usually errors)
-        if (conn.request_path not in opts.ignored_paths &&
-              should_log?(opts[:success_log_sampling_ratio])) ||
-             conn.status >= 300 do
+        if should_log_request?(conn, opts) do
           Logger.log(opts.level, fn ->
             stop = System.monotonic_time()
             diff = System.convert_time_unit(stop - start, :native, :microsecond)
@@ -288,7 +284,15 @@ if Code.ensure_loaded?(Plug) do
     defp query_type("{" <> _), do: "QUERY"
     defp query_type(_), do: nil
 
-    defp should_log?(ratio) do
+    defp should_log_request?(conn, opts) do
+      # Log successful request if path is not filtered based on the sampling pool
+      # or log all HTTP status >= 300 (usually errors)
+      (conn.request_path not in opts.ignored_paths &&
+         should_include_in_sample?(opts[:success_log_sampling_ratio])) ||
+        conn.status >= 300
+    end
+
+    defp should_include_in_sample?(ratio) do
       random_float() <= ratio
     end
 
