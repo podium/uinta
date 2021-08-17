@@ -101,6 +101,17 @@ defmodule Uinta.PlugTest do
     end
   end
 
+  defmodule SampleSuccessPlug do
+    use Plug.Builder
+
+    plug(Uinta.Plug, success_log_sampling_ratio: 0)
+    plug(:passthrough)
+
+    defp passthrough(conn, _) do
+      Plug.Conn.send_resp(conn, 200, "Passthrough")
+    end
+  end
+
   test "logs proper message to console" do
     message =
       capture_log(fn ->
@@ -319,5 +330,14 @@ defmodule Uinta.PlugTest do
 
     assert message =~ "QUERY unnamed"
     assert message =~ "hero {"
+  end
+
+  test "does not log when sample percent is set" do
+    message =
+      capture_log(fn ->
+        SampleSuccessPlug.call(conn(:get, "/"), [])
+      end)
+
+    refute message =~ ~r"\[debug\] GET / - Sent 200 in [0-9]+[µm]s"u
   end
 end

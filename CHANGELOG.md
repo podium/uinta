@@ -1,5 +1,10 @@
  # CHANGELOG
+## v0.7 - 2021-08-16
 
+### Added
+
+* configurable sampling of successful requests. Use the :success_log_sampling_ratio configuration in init and specify a ratio of the sample to log. Ratio can support a precision up to 4 digits
+* update dependencies
 ## v0.6 - 2021-04-08
 
 ### Added
