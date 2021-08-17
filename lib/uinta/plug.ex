@@ -47,7 +47,8 @@ if Code.ensure_loaded?(Plug) do
       json: false,
       include_variables: false,
       ignored_paths: [],
-      filter_variables: []
+      filter_variables: [],
+      success_log_sampling_ratio: 1.0
     ```
 
     If your endpoint didn't call `Plug.Logger`, add the above line above the line
@@ -79,6 +80,8 @@ if Code.ensure_loaded?(Plug) do
     `idToken`, and `refreshToken` will be filtered.
     - `:include_unnamed_queries` - Whether or not to include the full query
     body for queries with no name supplied
+    - `:success_log_sampling_ratio` - What percentage of successful requests
+    should be logged. Defaults to 1.0
     """
 
     require Logger
