@@ -80,6 +80,12 @@ want):
 plug Uinta.Plug, json: false, log: :info
 ```
 
+You can also perform log sampling by setting the `success_log_sampling_ratio`. Following is a 20% log sampling 
+
+```elixir
+plug Uinta.Plug, success_log_sampling_ratio: 0.2
+```
+
 If your endpoint didn't call `Plug.Logger`, add the above line above the line
 that looks like this:
 
