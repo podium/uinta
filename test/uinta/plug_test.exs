@@ -137,7 +137,7 @@ defmodule Uinta.PlugTest do
         MyPlug.call(conn(:post, "/graphql", params), [])
       end)
 
-    assert message =~ ~r"\[info\]  QUERY getUser - Sent 200 in [0-9]+[µm]s"u
+    assert message =~ ~r"\[info\]  QUERY getUser \(/graphql\) - Sent 200 in [0-9]+[µm]s"u
   end
 
   test "logs proper json to console" do
@@ -160,7 +160,7 @@ defmodule Uinta.PlugTest do
       end)
 
     assert message =~
-             ~r"{\"duration_ms\":[0-9]+\.?[0-9]+,\"method\":\"QUERY\",\"path\":\"getUser\",\"status\":\"200\",\"timing\":\"[0-9]+[µm]s\"}"u
+             ~r"{\"duration_ms\":[0-9]+\.?[0-9]+,\"method\":\"QUERY\",\"operation_name\":\"getUser\",\"path\":\"/graphql\",\"status\":\"200\",\"timing\":\"[0-9]+[µm]s\"}"u
   end
 
   test "logs paths with double slashes and trailing slash" do

@@ -47,7 +47,7 @@ defmodule Uinta.Formatter do
     - `message` is the message to be formatted. This should be iodata
   (typically String or iolist)
     - `timestamp` is a timestamp formatted according to
-  `Logger.Formatter.time/0`
+  `t:Logger.Formatter.time/0`
     - `metadata` is a keyword list containing metadata that will be included
   with the log line
 

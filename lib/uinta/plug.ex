@@ -150,7 +150,8 @@ if Code.ensure_loaded?(Plug) do
       %{
         connection_type: connection_type(conn),
         method: method(conn, graphql_info),
-        path: path(conn, graphql_info),
+        path: conn.request_path,
+        operation_name: graphql_info[:operation],
         query: query(graphql_info, opts),
         status: Integer.to_string(conn.status),
         timing: formatted_diff(diff),
@@ -174,7 +175,8 @@ if Code.ensure_loaded?(Plug) do
     end
 
     defp format_line(info, :string) do
-      log = [info.method, ?\s, info.path]
+      log = [info.method, ?\s, info.operation_name || info.path]
+      log = if is_nil(info.operation_name), do: log, else: [log, " (", info.path, ")"]
       log = if is_nil(info.variables), do: log, else: [log, " with ", info.variables]
       log = [log, " - ", info.connection_type, ?\s, info.status, " in ", info.timing]
       if is_nil(info.query), do: log, else: [log, "\nQuery: ", info.query]
@@ -183,10 +185,6 @@ if Code.ensure_loaded?(Plug) do
     @spec method(Plug.Conn.t(), graphql_info()) :: String.t()
     defp method(_, %{type: type}), do: type
     defp method(conn, _), do: conn.method
-
-    @spec path(Plug.Conn.t(), graphql_info()) :: String.t()
-    defp path(_, %{operation: operation}), do: operation
-    defp path(conn, _), do: conn.request_path
 
     @spec query(graphql_info(), opts()) :: String.t() | nil
     defp query(_, %{include_unnamed_queries: false}), do: nil

@@ -23,7 +23,7 @@ In addition, about 2/3 of those requests are GraphQL requests. Their first log
 line simply says `POST /graphql` every time, which gives us no insight into what
 the request is actually doing. `Uinta.Plug` will extract GraphQL query names
 when they exist to make these log lines more useful without having to enable
-debug logs: `QUERY messagesForLocation` or `MUTATION createMessage`.
+debug logs: `QUERY messagesForLocation (/graphql)` or `MUTATION createMessage (/graphql)`.
 
 For smaller organizations, the ability to filter out lines pertaining to certain
 requests paths can also be useful to cut down on log noise. Kubernetes health
