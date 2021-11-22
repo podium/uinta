@@ -1,4 +1,13 @@
  # CHANGELOG
+## v0.8 - 2021-11-22
+
+### Added
+`operationName` for GQL requests
+
+### Changed
+`path` now always path and not sometimes `operationName`
+
+
 ## v0.7 - 2021-08-16
 
 ### Added
