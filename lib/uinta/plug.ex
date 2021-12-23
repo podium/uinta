@@ -86,6 +86,7 @@ if Code.ensure_loaded?(Plug) do
 
     require Logger
     alias Plug.Conn
+
     @behaviour Plug
 
     @default_filter ~w(password passwordConfirmation idToken refreshToken)
@@ -156,6 +157,13 @@ if Code.ensure_loaded?(Plug) do
         status: Integer.to_string(conn.status),
         timing: formatted_diff(diff),
         duration_ms: diff / 1000,
+        client_ip: conn.remote_ip,
+        user_agent: get_first_value_for_header(conn, "user-agent"),
+        referer: get_first_value_for_header(conn, "referer"),
+        x_forwarded_for: get_first_value_for_header(conn, "x-forwarded-for"),
+        x_forwarded_proto: get_first_value_for_header(conn, "x-forwarded-proto"),
+        x_forwarded_port: get_first_value_for_header(conn, "x-forwarded-port"),
+        via: get_first_value_for_header(conn, "via"),
         variables: variables(graphql_info)
       }
     end
@@ -180,6 +188,12 @@ if Code.ensure_loaded?(Plug) do
       log = if is_nil(info.variables), do: log, else: [log, " with ", info.variables]
       log = [log, " - ", info.connection_type, ?\s, info.status, " in ", info.timing]
       if is_nil(info.query), do: log, else: [log, "\nQuery: ", info.query]
+    end
+
+    defp get_first_value_for_header(conn, name) do
+      conn
+      |> Plug.Conn.get_req_header(name)
+      |> List.first()
     end
 
     @spec method(Plug.Conn.t(), graphql_info()) :: String.t()
