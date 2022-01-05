@@ -8,7 +8,7 @@ defmodule Uinta.MixProject do
       app: :uinta,
       name: "Uinta",
       description: "Simpler structured logs and lower log volume for Elixir apps",
-      version: "0.8.1",
+      version: "0.9.0",
       elixir: "~> 1.8",
       source_url: @project_url,
       homepage_url: @project_url,

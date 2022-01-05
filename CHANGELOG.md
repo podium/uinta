@@ -1,4 +1,17 @@
  # CHANGELOG
+
+ ## v0.9 - 2022-01-05
+
+### Added
+* adds more fields to the log:
+  * referer
+  * user_agent
+  * x_forwarded_for
+  * x_forwarded_proto
+  * x_forwarded_port
+  * via
+
+
 ## v0.8 - 2021-11-22
 
 ### Added
