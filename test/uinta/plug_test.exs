@@ -146,12 +146,12 @@ defmodule Uinta.PlugTest do
         JsonPlug.call(conn(:get, "/"), [])
       end)
 
-    assert message =~ ~r/client_ip:.+/u
-    assert message =~ ~r/duration_ms: [0-9]+\.?[0-9]+/u
-    assert message =~ ~r/method: \"GET\"/u
-    assert message =~ ~r"path: \"/\""u
-    assert message =~ ~r/status: \"200\"/u
-    assert message =~ ~r/timing: \"[0-9]+[µm]s\"/u
+    assert message =~ ~r/client_ip\":\"127.0.0.1\"/u
+    assert message =~ ~r/duration_ms\":[0-9]+\.?[0-9]+/u
+    assert message =~ ~r/method\":\"GET\"/u
+    assert message =~ ~r"path\":\"/\""u
+    assert message =~ ~r/status\":\"200\"/u
+    assert message =~ ~r/timing\":\"[0-9]+[µm]s\"/u
   end
 
   test "logs graphql json to console" do
@@ -163,13 +163,13 @@ defmodule Uinta.PlugTest do
         JsonPlug.call(conn(:post, "/graphql", params), [])
       end)
 
-    assert message =~ ~r/client_ip:.+/u
-    assert message =~ ~r/duration_ms: [0-9]+\.?[0-9]+/u
-    assert message =~ ~r/method: \"QUERY\"/u
-    assert message =~ ~r/operation_name: \"getUser\"/u
-    assert message =~ ~r"path: \"/graphql\""u
-    assert message =~ ~r/status: \"200\"/u
-    assert message =~ ~r/timing: \"[0-9]+[µm]s\"/u
+    assert message =~ ~r/client_ip\":\"127.0.0.1\"/u
+    assert message =~ ~r/duration_ms\":[0-9]+\.?[0-9]+/u
+    assert message =~ ~r"path\":\"/graphql\""u
+    assert message =~ ~r/status\":\"200\"/u
+    assert message =~ ~r/timing\":\"[0-9]+[µm]s\"/u
+    assert message =~ ~r/method\":\"QUERY\"/u
+    assert message =~ ~r/operation_name\":\"getUser\"/u
   end
 
   test "logs graphql json to console with extra headers" do
@@ -190,12 +190,12 @@ defmodule Uinta.PlugTest do
         JsonPlug.call(conn, [])
       end)
 
-    assert message =~ ~r/client_ip:.+/u
-    assert message =~ ~r/x_forwarded_for: \"someip\"/u
-    assert message =~ ~r"referer: \"http://I.am.referer\""u
-    assert message =~ ~r/user_agent: \"Mozilla\"/u
-    assert message =~ ~r/x_forwarded_proto: \"http\"/u
-    assert message =~ ~r/x_forwarded_port: \"4000\"/u
+    assert message =~ ~r/client_ip\":\"127.0.0.1\"/u
+    assert message =~ ~r/x_forwarded_for\":\"someip\"/u
+    assert message =~ ~r"referer\":\"http://I.am.referer\""u
+    assert message =~ ~r/user_agent\":\"Mozilla\"/u
+    assert message =~ ~r/x_forwarded_proto\":\"http\"/u
+    assert message =~ ~r/x_forwarded_port\":\"4000\"/u
   end
 
   test "logs paths with double slashes and trailing slash" do

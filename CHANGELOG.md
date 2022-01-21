@@ -1,5 +1,11 @@
  # CHANGELOG
 
+
+ ## v0.9.1 - 2022-01-21
+
+### Changed
+   * Client ip is now properly serialize as a string
+
  ## v0.9 - 2022-01-05
 
 ### Added
