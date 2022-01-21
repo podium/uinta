@@ -157,7 +157,7 @@ if Code.ensure_loaded?(Plug) do
         status: Integer.to_string(conn.status),
         timing: formatted_diff(diff),
         duration_ms: diff / 1000,
-        client_ip: conn.remote_ip,
+        client_ip: client_ip(conn),
         user_agent: get_first_value_for_header(conn, "user-agent"),
         referer: get_first_value_for_header(conn, "referer"),
         x_forwarded_for: get_first_value_for_header(conn, "x-forwarded-for"),
@@ -194,6 +194,16 @@ if Code.ensure_loaded?(Plug) do
       conn
       |> Plug.Conn.get_req_header(name)
       |> List.first()
+    end
+
+    def client_ip(conn) do
+      case :inet.ntoa(conn.remote_ip) do
+        {:error, _} ->
+          ""
+
+        ip ->
+          List.to_string(ip)
+      end
     end
 
     @spec method(Plug.Conn.t(), graphql_info()) :: String.t()
