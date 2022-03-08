@@ -1,5 +1,9 @@
  # CHANGELOG
 
+## v0.9.2 - 2022-03-08
+
+### Changed
+* Doesn't crash when "query" is not a string
 
  ## v0.9.1 - 2022-01-21
 

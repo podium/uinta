@@ -140,6 +140,17 @@ defmodule Uinta.PlugTest do
     assert message =~ ~r"\[info\]  QUERY getUser \(/graphql\) - Sent 200 in [0-9]+[µm]s"u
   end
 
+  test "does not try to parse query details from non-string 'query' params" do
+    params = %{"query" => ["query FakeQuery {}"]}
+
+    message =
+      capture_log(fn ->
+        MyPlug.call(conn(:post, "/hello/world", params), [])
+      end)
+
+    assert message =~ ~r"\[info\]  POST /hello/world - Sent 200 in [0-9]+[µm]s"u
+  end
+
   test "logs proper json to console" do
     message =
       capture_log(fn ->
