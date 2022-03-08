@@ -220,10 +220,10 @@ if Code.ensure_loaded?(Plug) do
     defp variables(_), do: nil
 
     @spec graphql_info(Plug.Conn.t(), opts()) :: graphql_info() | nil
-    defp graphql_info(%{method: "POST", params: params}, opts) do
+    defp graphql_info(%{method: "POST", params: params = %{"query" => query}}, opts)
+         when is_binary(query) do
       type =
-        params["query"]
-        |> Kernel.||("")
+        query
         |> String.trim()
         |> query_type()
 
