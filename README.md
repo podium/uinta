@@ -48,6 +48,20 @@ def deps do
 end
 ```
 
+### Available Formatters
+
+#### Standard
+
+No special formatting or fields, good for general use.
+
+Module: `Uinta.Formatter` (or `Uinta.Formatter.Standard`)
+
+#### Datadog
+
+Adds Datadog specific metadata to the log output. See the module for more setup information and details.
+
+Module: `Uinta.Formatter.Datadog`
+
 ### Formatter Installation
 
 To use the formatter, you'll need to add it to your logger configuration. In

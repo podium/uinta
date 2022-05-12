@@ -1,5 +1,10 @@
  # CHANGELOG
 
+## v0.10.0 - 2022-05-09
+
+### Added
+* `Uinta.Formatter.Datadog` - Drop in replacement for `Uinta.Formatter` that adds Datadog specific metadata to help correlate traces and logs
+
 ## v0.9.2 - 2022-03-08
 
 ### Changed
