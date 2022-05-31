@@ -48,7 +48,8 @@ if Code.ensure_loaded?(Plug) do
       include_variables: false,
       ignored_paths: [],
       filter_variables: [],
-      success_log_sampling_ratio: 1.0
+      success_log_sampling_ratio: 1.0,
+      include_datadog_fields: false
     ```
 
     If your endpoint didn't call `Plug.Logger`, add the above line above the line
@@ -82,6 +83,8 @@ if Code.ensure_loaded?(Plug) do
     body for queries with no name supplied
     - `:success_log_sampling_ratio` - What percentage of successful requests
     should be logged. Defaults to 1.0
+    - `:include_datadog_fields` - Whether or not to add logger specific field based on Datadog logger.  Default is
+    `false`. See https://docs.datadoghq.com/logs/log_configuration/attributes_naming_convention/#http-requests for details
     """
 
     require Logger
@@ -101,6 +104,7 @@ if Code.ensure_loaded?(Plug) do
             format: format(),
             include_unnamed_queries: boolean(),
             include_variables: boolean(),
+            include_datadog_fields: boolean(),
             ignored_paths: list(String.t()),
             filter_variables: list(String.t())
           }
@@ -116,6 +120,7 @@ if Code.ensure_loaded?(Plug) do
         include_unnamed_queries: Keyword.get(opts, :include_unnamed_queries, false),
         include_variables: Keyword.get(opts, :include_variables, false),
         filter_variables: Keyword.get(opts, :filter_variables, @default_filter),
+        include_datadog_fields: Keyword.get(opts, :include_datadog_fields, false),
         success_log_sampling_ratio:
           Keyword.get(
             opts,
@@ -148,7 +153,7 @@ if Code.ensure_loaded?(Plug) do
 
     @spec info(Plug.Conn.t(), graphql_info(), integer(), opts()) :: map()
     defp info(conn, graphql_info, diff, opts) do
-      %{
+      info = %{
         connection_type: connection_type(conn),
         method: method(conn, graphql_info),
         path: conn.request_path,
@@ -166,6 +171,27 @@ if Code.ensure_loaded?(Plug) do
         via: get_first_value_for_header(conn, "via"),
         variables: variables(graphql_info)
       }
+
+      case opts[:include_datadog_fields] do
+        true ->
+          dd_fields = %{
+            "status" => Logger.level(),
+            "http.url" => info[:path],
+            "http.status_code" => conn.status,
+            "http.method" => info[:method],
+            "http.referer" => info[:referer],
+            "http.request_id" => Logger.metadata()[:request_id],
+            "http.useragent" => info[:user_agent],
+            "http.version" => Plug.Conn.get_http_protocol(conn),
+            "duration" => info[:duration_ms] * 1_000_000,
+            "network.client.ip" => info[:client_ip]
+          }
+
+          Map.merge(info, dd_fields)
+
+        _ ->
+          info
+      end
     end
 
     @spec format_line(map(), format()) :: iodata()
