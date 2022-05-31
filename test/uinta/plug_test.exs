@@ -179,7 +179,7 @@ defmodule Uinta.PlugTest do
   test "logs proper json with Datadog fields to console" do
     message =
       capture_log(fn ->
-        JsonPlug.call(conn(:get, "/"), include_datadog_fields: true)
+        JsonPlugWithDataDogFields.call(conn(:get, "/"), [])
       end)
 
     assert message =~ ~r/client_ip\":\"127.0.0.1\"/u
