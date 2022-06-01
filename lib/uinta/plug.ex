@@ -175,7 +175,6 @@ if Code.ensure_loaded?(Plug) do
       case opts[:include_datadog_fields] do
         true ->
           dd_fields = %{
-            "status" => Logger.level(),
             "http.url" => info[:path],
             "http.status_code" => conn.status,
             "http.method" => info[:method],
