@@ -1,5 +1,10 @@
  # CHANGELOG
 
+ ## v0.10.2 - 2022-05-31
+
+### Added
+* Removed remapping for status as done in Datadog directly
+
  ## v0.10.1 - 2022-05-31
 
 ### Added
