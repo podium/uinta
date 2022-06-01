@@ -62,6 +62,8 @@ Adds Datadog specific metadata to the log output. See the module for more setup 
 
 Module: `Uinta.Formatter.Datadog`
 
+To enable the full log format to use DataDog log service, just use `include_datadog_fields: true` in your plug initialization
+
 ### Formatter Installation
 
 To use the formatter, you'll need to add it to your logger configuration. In
@@ -94,7 +96,7 @@ want):
 plug Uinta.Plug, json: false, log: :info
 ```
 
-You can also perform log sampling by setting the `success_log_sampling_ratio`. Following is a 20% log sampling 
+You can also perform log sampling by setting the `success_log_sampling_ratio`. Following is a 20% log sampling
 
 ```elixir
 plug Uinta.Plug, success_log_sampling_ratio: 0.2

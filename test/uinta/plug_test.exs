@@ -28,6 +28,17 @@ defmodule Uinta.PlugTest do
     end
   end
 
+  defmodule JsonPlugWithDataDogFields do
+    use Plug.Builder
+
+    plug(Uinta.Plug, json: true, include_datadog_fields: true)
+    plug(:passthrough)
+
+    defp passthrough(conn, _) do
+      Plug.Conn.send_resp(conn, 200, "Passthrough")
+    end
+  end
+
   defmodule IgnoredPathsPlug do
     use Plug.Builder
 
@@ -163,6 +174,26 @@ defmodule Uinta.PlugTest do
     assert message =~ ~r"path\":\"/\""u
     assert message =~ ~r/status\":\"200\"/u
     assert message =~ ~r/timing\":\"[0-9]+[µm]s\"/u
+  end
+
+  test "logs proper json with Datadog fields to console" do
+    message =
+      capture_log(fn ->
+        JsonPlugWithDataDogFields.call(conn(:get, "/"), [])
+      end)
+
+    assert message =~ ~r/client_ip\":\"127.0.0.1\"/u
+    assert message =~ ~r/duration_ms\":[0-9]+\.?[0-9]+/u
+    assert message =~ ~r/method\":\"GET\"/u
+    assert message =~ ~r"path\":\"/\""u
+    assert message =~ ~r/status\":\"200\"/u
+    assert message =~ ~r/timing\":\"[0-9]+[µm]s\"/u
+
+    assert message =~ ~r/network.client.ip\":\"127.0.0.1\"/u
+    assert message =~ ~r/duration\":[0-9]+\.?[0-9]+/u
+    assert message =~ ~r/http.method\":\"GET\"/u
+    assert message =~ ~r"http.url\":\"/\""u
+    assert message =~ ~r/http.status_code\":200/u
   end
 
   test "logs graphql json to console" do

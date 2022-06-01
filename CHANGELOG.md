@@ -1,5 +1,10 @@
  # CHANGELOG
 
+ ## v0.10.1 - 2022-05-31
+
+### Added
+* Adds support for mapped fields in DataDog. To enable this, use `include_datadog_fields: true` in your plug initialization
+
 ## v0.10.0 - 2022-05-09
 
 ### Added
