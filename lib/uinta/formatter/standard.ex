@@ -16,6 +16,7 @@ defmodule Uinta.Formatter.Standard do
   def format(level, message, timestamp, metadata) do
     Util.format(level, message, timestamp, metadata) |> Util.encode()
   rescue
-    _ -> "Could not format: #{inspect({level, message, metadata})}"
+    e ->
+      "Could not format: #{inspect({level, message, metadata})}, Due to error: #{inspect(e)}"
   end
 end
