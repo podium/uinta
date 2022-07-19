@@ -1,5 +1,10 @@
  # CHANGELOG
 
+ ## v0.10.3 - 2022-07-19
+
+### Changed
+* Log out error on rescue when we are unable to format
+
  ## v0.10.2 - 2022-05-31
 
 ### Added

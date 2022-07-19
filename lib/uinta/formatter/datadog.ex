@@ -41,7 +41,6 @@ defmodule Uinta.Formatter.Datadog do
     |> Util.encode()
   rescue
     e ->
-      IO.inspect(e)
       "Could not format: #{inspect({level, message, metadata})}, Due to error: #{inspect(e)}"
   end
 
