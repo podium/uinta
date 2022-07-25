@@ -1,5 +1,10 @@
  # CHANGELOG
 
+ ## v0.10.4 - 2022-07-25
+
+### Changed
+* Add support for formatting metadata list values
+
  ## v0.10.3 - 2022-07-19
 
 ### Changed
