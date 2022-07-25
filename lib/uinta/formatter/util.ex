@@ -69,6 +69,12 @@ defmodule Uinta.Formatter.Util do
   @spec serialize(term()) :: String.t() | nil
   defp serialize(value) do
     cond do
+      is_list(value) && Enum.all?(value, &String.Chars.impl_for(&1)) ->
+        Enum.map(value, &to_string(&1))
+
+      is_list(value) && Enum.all?(value, &Inspect.impl_for(&1)) ->
+        Enum.map(value, &inspect(&1))
+
       String.Chars.impl_for(value) ->
         to_string(value)
 

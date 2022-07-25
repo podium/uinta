@@ -31,4 +31,13 @@ defmodule Uinta.FormatterTest do
     assert formatted ==
              "{\"log_level\":\"info\",\"metadata\":{\"request_id\":\"req_1234\",\"user_uid\":\"26dbba1d-5b72-4e5c-b1a7-701589343291\"},\"method\":\"GET\",\"path\":\"/\",\"status\":\"200\",\"timestamp\":\"2020-03-16T#{hour}:16:32.548Z\",\"timing\":\"69µs\"}\n"
   end
+
+  test "formats metadata values that are lists of atoms" do
+    metadata = [prop_1: [:elixir], prop_2: [{}]]
+    result = Formatter.format(:info, "Testing", {{1980, 1, 1}, {0, 0, 0, 0}}, metadata)
+
+    %{"metadata" => %{"prop_1" => prop_1_value, "prop_2" => prop_2_value}} = Jason.decode!(result)
+    assert prop_1_value == ["elixir"]
+    assert prop_2_value == ["{}"]
+  end
 end
