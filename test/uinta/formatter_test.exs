@@ -40,4 +40,69 @@ defmodule Uinta.FormatterTest do
     assert prop_1_value == ["elixir"]
     assert prop_2_value == ["{}"]
   end
+
+  test "formats metadata datetime values" do
+    metadata = [prop: ~U[2022-07-26 22:07:46.217735Z]]
+    result = Formatter.format(:info, "Testing", {{1980, 1, 1}, {0, 0, 0, 0}}, metadata)
+
+    %{"metadata" => %{"prop" => metadata_value}} = Jason.decode!(result)
+    assert metadata_value == "2022-07-26 22:07:46.217735Z"
+  end
+
+  test "formats metadata string values" do
+    result = Formatter.format(:info, "Testing", {{1980, 1, 1}, {0, 0, 0, 0}}, prop: "test")
+
+    %{"metadata" => %{"prop" => metadata_value}} = Jason.decode!(result)
+    assert metadata_value == "test"
+  end
+
+  test "formats metadata integer values" do
+    result = Formatter.format(:info, "Testing", {{1980, 1, 1}, {0, 0, 0, 0}}, prop: 1)
+
+    %{"metadata" => %{"prop" => metadata_value}} = Jason.decode!(result)
+    assert metadata_value == "1"
+  end
+
+  test "formats metadata float values" do
+    result = Formatter.format(:info, "Testing", {{1980, 1, 1}, {0, 0, 0, 0}}, prop: 0.1)
+
+    %{"metadata" => %{"prop" => metadata_value}} = Jason.decode!(result)
+    assert metadata_value == "0.1"
+  end
+
+  test "formats metadata boolean values" do
+    result = Formatter.format(:info, "Testing", {{1980, 1, 1}, {0, 0, 0, 0}}, prop: true)
+
+    %{"metadata" => %{"prop" => metadata_value}} = Jason.decode!(result)
+    assert metadata_value == "true"
+  end
+
+  test "formats metadata atom values" do
+    result = Formatter.format(:info, "Testing", {{1980, 1, 1}, {0, 0, 0, 0}}, prop: :test)
+
+    %{"metadata" => %{"prop" => metadata_value}} = Jason.decode!(result)
+    assert metadata_value == "test"
+  end
+
+  test "formats metadata tuple values" do
+    result = Formatter.format(:info, "Testing", {{1980, 1, 1}, {0, 0, 0, 0}}, prop: {:test})
+
+    %{"metadata" => %{"prop" => metadata_value}} = Jason.decode!(result)
+    assert metadata_value == "{:test}"
+  end
+
+  test "formats metadata map values" do
+    result =
+      Formatter.format(:info, "Testing", {{1980, 1, 1}, {0, 0, 0, 0}}, prop: %{test: "test"})
+
+    %{"metadata" => %{"prop" => metadata_value}} = Jason.decode!(result)
+    assert metadata_value == "%{test: \"test\"}"
+  end
+
+  test "formats metadata charlist" do
+    result = Formatter.format(:info, "Testing", {{1980, 1, 1}, {0, 0, 0, 0}}, prop: 'abc')
+
+    %{"metadata" => %{"prop" => metadata_value}} = Jason.decode!(result)
+    assert metadata_value == "abc"
+  end
 end
