@@ -70,13 +70,21 @@ defmodule Uinta.Formatter.Util do
   defp serialize(value) do
     cond do
       String.Chars.impl_for(value) ->
-        to_string(value)
+        serialize_to_string(value)
 
       Inspect.impl_for(value) ->
         inspect(value)
 
       true ->
         nil
+    end
+  end
+
+  defp serialize_to_string(value) do
+    try do
+      to_string(value)
+    rescue
+      _ -> inspect(value)
     end
   end
 end
