@@ -339,11 +339,20 @@ if Code.ensure_loaded?(Plug) do
     defp should_log_request?(conn, opts) do
       # Log successful request if path is not filtered based on the sampling pool
       # or log all HTTP status >= 300 (usually errors)
-      (conn.request_path not in opts.ignored_paths &&
-         should_include_in_sample?(opts[:success_log_sampling_ratio])) ||
-        conn.status >= 300
+      case conn do
+        %{status: status} when is_integer(status) and status >= 300 ->
+          true
+        
+        %{request_path: req_path} when req_path not in opts.ignored_paths ->
+          should_include_in_sample?(opts[:success_log_sampling_ratio])
+        
+        _ignored ->
+          false
+      end
     end
 
+    defp should_include_in_sample?(ratio) when is_float(ratio) and ratio >= 1.0, do: true
+    
     defp should_include_in_sample?(ratio) do
       random_float() <= ratio
     end
