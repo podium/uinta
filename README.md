@@ -1,5 +1,9 @@
 # Uinta
 
+[![Build Status](https://github.com/podium/uinta/actions/workflows/ci.yml/badge.svg)](https://github.com/podium/uinta/actions/workflows/ci.yml) [![Hex.pm](https://img.shields.io/hexpm/v/uinta.svg)](https://hex.pm/packages/uinta) [![Documentation](https://img.shields.io/badge/documentation-gray)](https://hexdocs.pm/uinta)
+[![Total Download](https://img.shields.io/hexpm/dt/uinta.svg)](https://hex.pm/packages/uinta)
+[![License](https://img.shields.io/hexpm/l/uinta.svg)](https://github.com/podium/uinta/blob/master/LICENSE.md)
+
 Uinta is a plugin for the default Elixir logger that lowers log volume while
 maximizing log usefulness. It is not a logger backend, but rather includes
 `Uinta.Formatter` which will format logs on top of the default Elixir logger

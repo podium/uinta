@@ -60,9 +60,8 @@ defmodule Uinta.Formatter.Util do
   defp format_timestamp({date, {hh, mm, ss, ms}}) do
     with erl_time <- :calendar.local_time_to_universal_time({date, {hh, mm, ss}}),
          {:ok, timestamp} <- NaiveDateTime.from_erl(erl_time, {ms * 1000, 3}),
-         {:ok, with_timezone} <- DateTime.from_naive(timestamp, "Etc/UTC"),
-         result <- DateTime.to_iso8601(with_timezone) do
-      result
+         {:ok, with_timezone} <- DateTime.from_naive(timestamp, "Etc/UTC") do
+      DateTime.to_iso8601(with_timezone)
     end
   end
 
@@ -81,10 +80,8 @@ defmodule Uinta.Formatter.Util do
   end
 
   defp serialize_to_string(value) do
-    try do
-      to_string(value)
-    rescue
-      _ -> inspect(value)
-    end
+    to_string(value)
+  rescue
+    _ -> inspect(value)
   end
 end

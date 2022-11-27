@@ -36,7 +36,8 @@ defmodule Uinta.Formatter.Datadog do
   """
   @spec format(Types.level(), iodata(), Types.time(), Keyword.t()) :: iodata()
   def format(level, message, timestamp, metadata) do
-    Util.format(level, message, timestamp, metadata)
+    level
+    |> Util.format(message, timestamp, metadata)
     |> add_datadog_trace(metadata)
     |> Util.encode()
   rescue
