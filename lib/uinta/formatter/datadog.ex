@@ -54,7 +54,7 @@ defmodule Uinta.Formatter.Datadog do
 
   defp to_datadog_id(id) when is_nil(id), do: nil
 
-  defp to_datadog_id(<<high::bytes-size(16)>> <> <<low::bytes-size(16)>>) do
+  defp to_datadog_id(<<_high::bytes-size(16)>> <> <<low::bytes-size(16)>>) do
     #  OpenTelemetry uses 128 bits for the trace id and 64 bits for the span id.
     #  DataDog uses the lower 64 bits of each, as an unsigned integer, for its trace/span ids.
     to_datadog_id(low)
