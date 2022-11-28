@@ -56,14 +56,29 @@ defmodule Uinta.Formatter.Util do
     Map.put(log, "metadata", metadata)
   end
 
+  @doc """
+  RFC3339 UTC "Zulu" format.
+  """
   @spec format_timestamp(Logger.Formatter.time()) :: String.t()
-  defp format_timestamp({date, {hh, mm, ss, ms}}) do
-    with erl_time <- :calendar.local_time_to_universal_time({date, {hh, mm, ss}}),
-         {:ok, timestamp} <- NaiveDateTime.from_erl(erl_time, {ms * 1000, 3}),
-         {:ok, with_timezone} <- DateTime.from_naive(timestamp, "Etc/UTC") do
-      DateTime.to_iso8601(with_timezone)
-    end
+  def format_timestamp({date, time}) do
+    [format_date(date), ?T, format_time(time), ?Z]
+    |> IO.iodata_to_binary()
   end
+
+  defp format_date({yy, mm, dd}) do
+    [Integer.to_string(yy), ?-, pad2(mm), ?-, pad2(dd)]
+  end
+
+  defp format_time({hh, mi, ss, ms}) do
+    [pad2(hh), ?:, pad2(mi), ?:, pad2(ss), ?., pad3(ms)]
+  end
+
+  defp pad3(int) when int < 10, do: [?0, ?0, Integer.to_string(int)]
+  defp pad3(int) when int < 100, do: [?0, Integer.to_string(int)]
+  defp pad3(int), do: Integer.to_string(int)
+
+  defp pad2(int) when int < 10, do: [?0, Integer.to_string(int)]
+  defp pad2(int), do: Integer.to_string(int)
 
   @spec serialize(term()) :: String.t() | nil
   defp serialize(value) do
