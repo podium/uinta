@@ -86,11 +86,10 @@ if Code.ensure_loaded?(Plug) do
     - `:include_datadog_fields` - Whether or not to add logger specific field based on Datadog logger.  Default is
     `false`. See https://docs.datadoghq.com/logs/log_configuration/attributes_naming_convention/#http-requests for details
     """
-
-    require Logger
-    alias Plug.Conn
-
     @behaviour Plug
+
+    alias Plug.Conn
+    require Logger
 
     @default_filter ~w(password passwordConfirmation idToken refreshToken)
     @default_sampling_ratio 1.0
@@ -135,20 +134,23 @@ if Code.ensure_loaded?(Plug) do
       start = System.monotonic_time()
 
       Conn.register_before_send(conn, fn conn ->
-        if should_log_request?(conn, opts) do
-          Logger.log(opts.level, fn ->
-            stop = System.monotonic_time()
-            diff = System.convert_time_unit(stop - start, :native, :microsecond)
-
-            graphql_info = graphql_info(conn, opts)
-            info = info(conn, graphql_info, diff, opts)
-
-            format_line(info, opts.format)
-          end)
-        end
-
+        log_request(conn, start, opts)
         conn
       end)
+    end
+
+    defp log_request(conn, start, opts) do
+      if should_log_request?(conn, opts) do
+        Logger.log(opts.level, fn ->
+          stop = System.monotonic_time()
+          diff = System.convert_time_unit(stop - start, :native, :microsecond)
+
+          graphql_info = graphql_info(conn, opts)
+          info = info(conn, graphql_info, diff, opts)
+
+          format_line(info, opts.format)
+        end)
+      end
     end
 
     @spec info(Plug.Conn.t(), graphql_info(), integer(), opts()) :: map()

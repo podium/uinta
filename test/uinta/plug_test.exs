@@ -129,14 +129,14 @@ defmodule Uinta.PlugTest do
         MyPlug.call(conn(:get, "/"), [])
       end)
 
-    assert message =~ ~r"\[info\]  GET / - Sent 200 in [0-9]+[µm]s"u
+    assert message =~ ~r"\[info\]\s+GET / - Sent 200 in [0-9]+[µm]s"u
 
     message =
       capture_log(fn ->
         MyPlug.call(conn(:get, "/hello/world"), [])
       end)
 
-    assert message =~ ~r"\[info\]  GET /hello/world - Sent 200 in [0-9]+[µm]s"u
+    assert message =~ ~r"\[info\]\s+GET /hello/world - Sent 200 in [0-9]+[µm]s"u
   end
 
   test "logs proper graphql message to console" do
@@ -148,7 +148,7 @@ defmodule Uinta.PlugTest do
         MyPlug.call(conn(:post, "/graphql", params), [])
       end)
 
-    assert message =~ ~r"\[info\]  QUERY getUser \(/graphql\) - Sent 200 in [0-9]+[µm]s"u
+    assert message =~ ~r"\[info\]\s+QUERY getUser \(/graphql\) - Sent 200 in [0-9]+[µm]s"u
   end
 
   test "does not try to parse query details from non-string 'query' params" do
@@ -159,7 +159,7 @@ defmodule Uinta.PlugTest do
         MyPlug.call(conn(:post, "/hello/world", params), [])
       end)
 
-    assert message =~ ~r"\[info\]  POST /hello/world - Sent 200 in [0-9]+[µm]s"u
+    assert message =~ ~r"\[info\]\s+POST /hello/world - Sent 200 in [0-9]+[µm]s"u
   end
 
   test "logs proper json to console" do
@@ -282,7 +282,7 @@ defmodule Uinta.PlugTest do
         IgnoredPathsErrorPlug.call(conn(:post, "/ignore", []), [])
       end)
 
-    assert message =~ "[info]  POST /ignore - Sent 500"
+    assert message =~ ~r"\[info\]\s+POST /ignore - Sent 500 in [0-9]+[µm]s"u
   end
 
   test "includes variables when applicable" do
