@@ -51,7 +51,7 @@ defmodule Uinta.MixProject do
 
   defp package do
     [
-      maintainers: ["Emmanuel Pinault", "Dennis Beatty"],
+      maintainers: ["Podium"],
       licenses: ["MIT"],
       links: %{
         "GitHub" => @project_url,
