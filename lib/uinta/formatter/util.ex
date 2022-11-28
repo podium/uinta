@@ -61,8 +61,7 @@ defmodule Uinta.Formatter.Util do
   """
   @spec format_timestamp(Logger.Formatter.time()) :: String.t()
   def format_timestamp({date, time}) do
-    [format_date(date), ?T, format_time(time), ?Z]
-    |> IO.iodata_to_binary()
+    IO.iodata_to_binary([format_date(date), ?T, format_time(time), ?Z])
   end
 
   defp format_date({yy, mm, dd}) do
