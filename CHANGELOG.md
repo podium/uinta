@@ -1,5 +1,12 @@
  # CHANGELOG
 
+## v0.11.0 (2022-11-28)
+### Changed
+ * Upgrade dependencies
+ * Clean up some docs
+ * some internal code cleaning
+ * ** Breaking **  Support Elixir 1.11 and above
+
  ## v0.10.4 (2022-07-25)
 
 ### Changed
