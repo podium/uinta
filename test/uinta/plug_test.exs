@@ -282,7 +282,7 @@ defmodule Uinta.PlugTest do
         IgnoredPathsErrorPlug.call(conn(:post, "/ignore", []), [])
       end)
 
-    assert message =~ "[info]\s+POST /ignore - Sent 500"
+    assert message =~ ~r"\[info\]\s+POST /ignore - Sent 500 in [0-9]+[µm]s"u
   end
 
   test "includes variables when applicable" do
