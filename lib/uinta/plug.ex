@@ -337,17 +337,16 @@ if Code.ensure_loaded?(Plug) do
     defp query_type(_), do: nil
 
     defp should_log_request?(conn, opts) do
-      # Log successful request if path is not filtered based on the sampling pool
-      # or log all HTTP status >= 300 (usually errors)
-      case conn do
-        %{status: status} when is_integer(status) and status >= 300 ->
+      cond do
+        is_integer(conn.status) and conn.status >= 300 ->
+          # log all HTTP status >= 300 (usually errors)
           true
 
-        %{request_path: req_path} when req_path not in opts.ignored_paths ->
-          should_include_in_sample?(opts[:success_log_sampling_ratio])
-
-        _ignored ->
+        conn.request_path in opts.ignored_paths ->
           false
+
+        true ->
+          should_include_in_sample?(opts[:success_log_sampling_ratio])
       end
     end
 
