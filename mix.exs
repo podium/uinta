@@ -10,7 +10,7 @@ defmodule Uinta.MixProject do
       name: "Uinta",
       description: "Simpler structured logs and lower log volume for Elixir apps",
       version: @version,
-      elixir: "~> 1.11",
+      elixir: "~> 1.13",
       source_url: @project_url,
       homepage_url: @project_url,
       start_permanent: Mix.env() == :prod,
@@ -29,10 +29,10 @@ defmodule Uinta.MixProject do
 
   defp deps do
     [
-      {:credo, "~> 1.6", only: [:dev, :test]},
-      {:ex_doc, "~> 0.21", only: :dev, runtime: false},
-      {:jason, "~> 1.1"},
-      {:plug, ">= 0.0.0", optional: true}
+      {:credo, "~> 1.7", only: [:dev, :test]},
+      {:ex_doc, "~> 0.30", only: :dev, runtime: false},
+      {:jason, "~> 1.4"},
+      {:plug, ">= 1.10", optional: true}
     ]
   end
 
