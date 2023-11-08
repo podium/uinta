@@ -94,7 +94,7 @@ if Code.ensure_loaded?(Plug) do
     @default_filter ~w(password passwordConfirmation idToken refreshToken)
     @default_sampling_ratio 1.0
 
-    @query_name_regex ~r/^(?:(?:query|mutation)\s+(\w+)(?:\(\s*\$\w+:\s+\[?\w+\]?!?(?:,?\s+\$\w+:\s+\[?\w+\]?!?)*\s*\))?\s*)?{/
+    @query_name_regex ~r/^(?:query|mutation)\s+(\w+)|{\W+(\w+)\W+?{/m
 
     @type format :: :json | :string
     @type graphql_info :: %{type: String.t(), operation: String.t(), variables: String.t() | nil}
@@ -307,7 +307,7 @@ if Code.ensure_loaded?(Plug) do
       end
     end
 
-    @spec formatted_diff(integer()) :: list(String.t())
+    @spec formatted_diff(integer()) :: String.t()
     defp formatted_diff(diff) when diff > 1000 do
       "#{diff |> div(1000) |> Integer.to_string()}ms"
     end
@@ -318,7 +318,7 @@ if Code.ensure_loaded?(Plug) do
     defp connection_type(%{state: :set_chunked}), do: "Chunked"
     defp connection_type(_), do: "Sent"
 
-    @spec operation_name(String.t()) :: String.t() | nil
+    @spec operation_name(map()) :: String.t() | nil
     defp operation_name(%{"operationName" => name}), do: name
 
     defp operation_name(%{"query" => query}) do

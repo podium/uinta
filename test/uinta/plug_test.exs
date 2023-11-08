@@ -196,9 +196,14 @@ defmodule Uinta.PlugTest do
     assert message =~ ~r/http.status_code\":200/u
   end
 
-  test "logs graphql json to console" do
+  test "logs graphql json to console, use operationName" do
     variables = %{"user_uid" => "b1641ddf-b7b0-445e-bcbb-96ef359eae81"}
-    params = %{"operationName" => "getUser", "query" => "query getUser", "variables" => variables}
+
+    params = %{
+      "operationName" => "getUser",
+      "query" => "query totoQuery",
+      "variables" => variables
+    }
 
     message =
       capture_log(fn ->
@@ -212,6 +217,51 @@ defmodule Uinta.PlugTest do
     assert message =~ ~r/timing\":\"[0-9]+[µm]s\"/u
     assert message =~ ~r/method\":\"QUERY\"/u
     assert message =~ ~r/operation_name\":\"getUser\"/u
+  end
+
+  test "logs graphql json to console use Query for operationName" do
+    variables = %{"user_uid" => "b1641ddf-b7b0-445e-bcbb-96ef359eae81"}
+    params = %{"query" => "query getUser", "variables" => variables}
+
+    message =
+      capture_log(fn ->
+        JsonPlug.call(conn(:post, "/graphql", params), [])
+      end)
+
+    assert message =~ ~r/client_ip\":\"127.0.0.1\"/u
+    assert message =~ ~r/duration_ms\":[0-9]+\.?[0-9]+/u
+    assert message =~ ~r"path\":\"/graphql\""u
+    assert message =~ ~r/status\":\"200\"/u
+    assert message =~ ~r/timing\":\"[0-9]+[µm]s\"/u
+    assert message =~ ~r/method\":\"QUERY\"/u
+    assert message =~ ~r/operation_name\":\"getUser\"/u
+  end
+
+  test "logs graphql json to console use mutation for operationName" do
+    variables = %{"user_uid" => "b1641ddf-b7b0-445e-bcbb-96ef359eae81"}
+
+    query = """
+    mutation track($userId: String!, $event: String!, $properties: [String]) {
+      track(userId: $userId, event: $event, properties: $properties) {
+        status
+      }
+    }
+    """
+
+    params = %{"query" => query, "variables" => variables}
+
+    message =
+      capture_log(fn ->
+        JsonPlug.call(conn(:post, "/graphql", params), [])
+      end)
+
+    assert message =~ ~r/client_ip\":\"127.0.0.1\"/u
+    assert message =~ ~r/duration_ms\":[0-9]+\.?[0-9]+/u
+    assert message =~ ~r"path\":\"/graphql\""u
+    assert message =~ ~r/status\":\"200\"/u
+    assert message =~ ~r/timing\":\"[0-9]+[µm]s\"/u
+    assert message =~ ~r/method\":\"MUTATION\"/u
+    assert message =~ ~r/operation_name\":\"track\"/u
   end
 
   test "logs graphql json to console with extra headers" do
