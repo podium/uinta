@@ -32,7 +32,7 @@ defmodule Uinta.MixProject do
       {:credo, "~> 1.7", only: [:dev, :test]},
       {:ex_doc, "~> 0.30", only: :dev, runtime: false},
       {:jason, "~> 1.4"},
-      {:plug, ">= 1.10", optional: true}
+      {:plug, "~> 1.10", optional: true}
     ]
   end
 
