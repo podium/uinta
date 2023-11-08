@@ -18,11 +18,15 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04, ubuntu-20.04]
-        elixir_version: [1.12.3, 1.13.3, 1.14.1]
-        otp_version: [24, 25]
+        elixir_version: [ 1.13, 1.14, 1.15]
+        otp_version: [24, 25, 26]
         exclude:
+          - otp_version: 26
+            elixir_version: 1.14
+          - otp_version: 26
+            elixir_version: 1.13
           - otp_version: 25
-            elixir_version: 1.12.3
+            elixir_version: 1.13
     steps:
       - uses: actions/checkout@v3
 

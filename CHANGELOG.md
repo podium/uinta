@@ -1,5 +1,10 @@
  # CHANGELOG
 
+## v0.12.0 (2023-11-07)
+### Changed
+* Upgrade dependencies
+* fix bad regex to capture better operation name
+
 ## v0.11.0 (2022-11-28)
 ### Changed
  * Upgrade dependencies

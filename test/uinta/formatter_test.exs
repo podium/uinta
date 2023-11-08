@@ -94,7 +94,7 @@ defmodule Uinta.FormatterTest do
   end
 
   test "formats metadata charlist" do
-    result = Formatter.format(:info, "Testing", {{1980, 1, 1}, {0, 0, 0, 0}}, prop: 'abc')
+    result = Formatter.format(:info, "Testing", {{1980, 1, 1}, {0, 0, 0, 0}}, prop: ~c"abc")
 
     %{"metadata" => %{"prop" => metadata_value}} = Jason.decode!(result)
     assert metadata_value == "abc"
