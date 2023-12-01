@@ -94,7 +94,7 @@ if Code.ensure_loaded?(Plug) do
     @default_filter ~w(password passwordConfirmation idToken refreshToken)
     @default_sampling_ratio 1.0
 
-    @query_name_regex ~r/^(?:query|mutation)\s+(\w+)|{\W+(\w+)\W+?{/m
+    @query_name_regex ~r/^\s*(?:query|mutation)\s+(\w+)|{\W+(\w+)\W+?{/m
 
     @type format :: :json | :string
     @type graphql_info :: %{type: String.t(), operation: String.t(), variables: String.t() | nil}
