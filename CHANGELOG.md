@@ -1,5 +1,9 @@
  # CHANGELOG
 
+## v0.12.1 (2023-12-01)
+### Changed
+* handle white space in front of a mutation/query
+
 ## v0.12.0 (2023-11-07)
 ### Changed
 * Upgrade dependencies
