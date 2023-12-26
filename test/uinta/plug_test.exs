@@ -28,6 +28,17 @@ defmodule Uinta.PlugTest do
     end
   end
 
+  defmodule MapPlug do
+    use Plug.Builder
+
+    plug(Uinta.Plug, format: :map)
+    plug(:passthrough)
+
+    defp passthrough(conn, _) do
+      Plug.Conn.send_resp(conn, 200, "Passthrough")
+    end
+  end
+
   defmodule JsonPlugWithDataDogFields do
     use Plug.Builder
 
@@ -160,6 +171,20 @@ defmodule Uinta.PlugTest do
       end)
 
     assert message =~ ~r"\[info\]\s+POST /hello/world - Sent 200 in [0-9]+[µm]s"u
+  end
+
+  test "logs map to console" do
+    message =
+      capture_log(fn ->
+        MapPlug.call(conn(:get, "/"), [])
+      end)
+
+    assert message =~ ~r/client_ip: \"127.0.0.1\"/u
+    assert message =~ ~r/duration_ms: [0-9]+\.?[0-9]+/u
+    assert message =~ ~r/method: \"GET\"/u
+    assert message =~ ~r"path: \"/\""u
+    assert message =~ ~r/status: \"200\"/u
+    assert message =~ ~r/timing: \"[0-9]+[µm]s\"/u
   end
 
   test "logs proper json to console" do

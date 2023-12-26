@@ -97,7 +97,7 @@ If it exists in your endpoint, replace it with this (using the options you
 want):
 
 ```elixir
-plug Uinta.Plug, json: false, log: :info
+plug Uinta.Plug, format: :string, log: :info
 ```
 
 You can also perform log sampling by setting the `success_log_sampling_ratio`. Following is a 20% log sampling
