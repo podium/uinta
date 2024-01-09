@@ -112,13 +112,7 @@ if Code.ensure_loaded?(Plug) do
     def init(opts) do
       format =
         case Keyword.fetch(opts, :format) do
-          {:ok, :json = value} ->
-            value
-
-          {:ok, :map = value} ->
-            value
-
-          {:ok, :string = value} ->
+          {:ok, value} when value in [:json, :map, :string] ->
             value
 
           :error ->
