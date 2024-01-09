@@ -44,7 +44,7 @@ if Code.ensure_loaded?(Plug) do
     ```
     plug Uinta.Plug,
       log: :info,
-      json: false,
+      format: :string,
       include_variables: false,
       ignored_paths: [],
       filter_variables: [],
@@ -70,8 +70,8 @@ if Code.ensure_loaded?(Plug) do
 
     - `:log` - The log level at which this plug should log its request info.
     Default is `:info`
-    - `:json` - Whether or not this plug should log in JSON format. Default is
-    `false`
+    - `:format` - Output format, either :json, :string, or :map. Default is `:string`
+    - `:json` - Whether or not plug should log in JSON format. Default is `false` (obsolete)
     - `:ignored_paths` - A list of paths that should not log requests. Default
     is `[]`.
     - `:include_variables` - Whether or not to include any GraphQL variables in
@@ -96,7 +96,7 @@ if Code.ensure_loaded?(Plug) do
 
     @query_name_regex ~r/^\s*(?:query|mutation)\s+(\w+)|{\W+(\w+)\W+?{/m
 
-    @type format :: :json | :string
+    @type format :: :json | :map | :string
     @type graphql_info :: %{type: String.t(), operation: String.t(), variables: String.t() | nil}
     @type opts :: %{
             level: Logger.level(),
@@ -110,7 +110,14 @@ if Code.ensure_loaded?(Plug) do
 
     @impl Plug
     def init(opts) do
-      format = if Keyword.get(opts, :json, false), do: :json, else: :string
+      format =
+        case Keyword.fetch(opts, :format) do
+          {:ok, value} when value in [:json, :map, :string] ->
+            value
+
+          :error ->
+            if Keyword.get(opts, :json, false), do: :json, else: :string
+        end
 
       %{
         level: Keyword.get(opts, :log, :info),
@@ -195,13 +202,13 @@ if Code.ensure_loaded?(Plug) do
       end
     end
 
-    @spec format_line(map(), format()) :: iodata()
+    @spec format_line(map(), format()) :: iodata() | map()
+    defp format_line(info, :map) do
+      format_info(info)
+    end
+
     defp format_line(info, :json) do
-      info =
-        info
-        |> Map.delete(:connection_type)
-        |> Enum.filter(fn {_, value} -> !is_nil(value) end)
-        |> Enum.into(%{})
+      info = format_info(info)
 
       case Jason.encode(info) do
         {:ok, encoded} -> encoded
@@ -215,6 +222,14 @@ if Code.ensure_loaded?(Plug) do
       log = if is_nil(info.variables), do: log, else: [log, " with ", info.variables]
       log = [log, " - ", info.connection_type, ?\s, info.status, " in ", info.timing]
       if is_nil(info.query), do: log, else: [log, "\nQuery: ", info.query]
+    end
+
+    # Format structured data for output
+    @spec format_info(map()) :: map()
+    defp format_info(info) do
+      info
+      |> Map.delete(:connection_type)
+      |> Map.reject(fn {_, value} -> is_nil(value) end)
     end
 
     defp get_first_value_for_header(conn, name) do
