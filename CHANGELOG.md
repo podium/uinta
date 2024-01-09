@@ -1,5 +1,13 @@
  # CHANGELOG
 
+## v0.13.0 (2024-01-09)
+### Changed
+  * Support not double encoding the payload. In order to do that, a new plugs option `format` was added. We are deprecating the `json` option instead though it is backward compatible for a little while
+
+   - `:format` - Output format, either :json, :string, or :map. Default is `:string`
+
+  To migrate easily, just find where you initialize your plug, and change the :json to :format
+
 ## v0.12.1 (2023-12-01)
 ### Changed
 * handle white space in front of a mutation/query
