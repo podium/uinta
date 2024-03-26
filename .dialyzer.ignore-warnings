@@ -1,0 +1,5 @@
+lib/uinta/formatter/util.ex:62: Unknown type 'Elixir.Logger.Formatter':time/0
+lib/uinta/plug.ex:222: The test binary() == 'nil' can never evaluate to 'true'
+lib/uinta/plug.ex:224: The pattern 'false' can never match the type 'true'
+lib/uinta/plug.ex:257: The pattern <#{'query':=_query@1}, _> can never match the type <#{'operation':=binary(), 'type':=<<_:40,_:_*24>>, 'variables':=binary()},#{'filter_variables':=[binary()], 'format':='json' | 'map' | 'string', 'ignored_paths':=[binary()], 'include_datadog_fields':=boolean(), 'include_unnamed_queries':='true', 'include_variables':=boolean(), 'level':='alert' | 'critical' | 'debug' | 'emergency' | 'error' | 'info' | 'notice' | 'warn' | 'warning'}>
+lib/uinta/plug.ex:262: The variable _ can never match since previous clauses completely covered the type #{'operation':=binary(), 'type':=<<_:40,_:_*24>>, 'variables':=binary()}

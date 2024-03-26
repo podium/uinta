@@ -15,6 +15,11 @@ defmodule Uinta.MixProject do
       homepage_url: @project_url,
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      dialyzer: [
+        ignore_warnings: ".dialyzer.ignore-warnings",
+        list_unused_filters: true,
+        plt_add_apps: [:mix]
+      ],
       docs: docs(),
       package: package(),
       test_coverage: [summary: [threshold: 80]]
@@ -30,6 +35,7 @@ defmodule Uinta.MixProject do
   defp deps do
     [
       {:credo, "~> 1.7", only: [:dev, :test]},
+      {:dialyxir, "~> 1.4", only: :dev, runtime: false},
       {:ex_doc, "~> 0.30", only: :dev, runtime: false},
       {:jason, "~> 1.4"},
       {:plug, "~> 1.10", optional: true}
