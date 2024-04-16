@@ -1,5 +1,9 @@
  # CHANGELOG
 
+## v0.14.0 (2024-04-16)
+* Support dynamic log level in `Uinta.Plug`.
+  * Option `:log` now accepts `{module, function, args}` tuple called with prepended `conn` to determine log level.
+
 ## v0.13.0 (2024-01-09)
 ### Changed
   * Support not double encoding the payload. In order to do that, a new plugs option `format` was added. We are deprecating the `json` option instead though it is backward compatible for a little while

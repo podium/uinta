@@ -123,6 +123,37 @@ defmodule Uinta.PlugTest do
     end
   end
 
+  defmodule MyDynamicLevelPlug do
+    use Plug.Builder
+
+    plug(Uinta.Plug, log: {__MODULE__, :level, [:some, :opts]})
+    plug(:passthrough)
+
+    def level(conn, :some, :opts) do
+      case conn.status do
+        info when info in 100..199 ->
+          :debug
+
+        success when success in 200..299 ->
+          :info
+
+        redirect when redirect in 300..399 ->
+          :notice
+
+        client_error when client_error in 400..499 ->
+          :warning
+
+        server_error when server_error in 500..599 ->
+          :error
+      end
+    end
+
+    defp passthrough(conn, _opts) do
+      status = Map.fetch!(conn.private, :dynamic_status)
+      Plug.Conn.send_resp(conn, status, "Body shouldn't matter")
+    end
+  end
+
   defmodule SampleSuccessPlug do
     use Plug.Builder
 
@@ -340,6 +371,48 @@ defmodule Uinta.PlugTest do
       end)
 
     assert message =~ ~r"\[debug\] GET / - Sent 200 in [0-9]+[µm]s"u
+  end
+
+  test "logs dynamic log low level" do
+    conn =
+      :get
+      |> conn("/")
+      |> put_private(:dynamic_status, 100)
+
+    message =
+      capture_log(fn ->
+        MyDynamicLevelPlug.call(conn, [])
+      end)
+
+    assert message =~ ~r"\[debug\] GET / - Sent 100 in [0-9]+[µm]s"u
+  end
+
+  test "logs dynamic log mid level" do
+    conn =
+      :get
+      |> conn("/")
+      |> put_private(:dynamic_status, 307)
+
+    message =
+      capture_log(fn ->
+        MyDynamicLevelPlug.call(conn, [])
+      end)
+
+    assert message =~ ~r"\[notice\] GET / - Sent 307 in [0-9]+[µm]s"u
+  end
+
+  test "logs dynamic log high level" do
+    conn =
+      :get
+      |> conn("/")
+      |> put_private(:dynamic_status, 502)
+
+    message =
+      capture_log(fn ->
+        MyDynamicLevelPlug.call(conn, [])
+      end)
+
+    assert message =~ ~r"\[error\] GET / - Sent 502 in [0-9]+[µm]s"u
   end
 
   test "ignores ignored_paths when a 200-level status is returned" do

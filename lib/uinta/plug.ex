@@ -70,6 +70,7 @@ if Code.ensure_loaded?(Plug) do
 
     - `:log` - The log level at which this plug should log its request info.
     Default is `:info`
+      - Can be a `{module, function_name, args}` tuple where function is applied with `conn` prepended to args to determine log level.
     - `:format` - Output format, either :json, :string, or :map. Default is `:string`
     - `:json` - Whether or not plug should log in JSON format. Default is `false` (obsolete)
     - `:ignored_paths` - A list of paths that should not log requests. Default
@@ -99,7 +100,7 @@ if Code.ensure_loaded?(Plug) do
     @type format :: :json | :map | :string
     @type graphql_info :: %{type: String.t(), operation: String.t(), variables: String.t() | nil}
     @type opts :: %{
-            level: Logger.level(),
+            level: Logger.level() | {module(), atom(), list()},
             format: format(),
             include_unnamed_queries: boolean(),
             include_variables: boolean(),
@@ -148,7 +149,9 @@ if Code.ensure_loaded?(Plug) do
 
     defp log_request(conn, start, opts) do
       if should_log_request?(conn, opts) do
-        Logger.log(opts.level, fn ->
+        level = log_level(conn, opts)
+
+        Logger.log(level, fn ->
           stop = System.monotonic_time()
           diff = System.convert_time_unit(stop - start, :native, :microsecond)
 
@@ -158,6 +161,18 @@ if Code.ensure_loaded?(Plug) do
           format_line(info, opts.format)
         end)
       end
+    end
+
+    @spec log_level(Plug.Conn.t(), opts()) :: Logger.level()
+    defp log_level(conn, opts)
+
+    defp log_level(_conn, %{level: level}) when is_atom(level) do
+      level
+    end
+
+    defp log_level(conn, %{level: {module, function, args}})
+         when is_atom(module) and is_atom(function) and is_list(args) do
+      apply(module, function, [conn | args])
     end
 
     @spec info(Plug.Conn.t(), graphql_info(), integer(), opts()) :: map()
