@@ -1,5 +1,9 @@
  # CHANGELOG
 
+## v0.15.0 (2024-10-01)
+
+* Remove support for Elixir 1.13. Minimum is Elixir 1.14
+
 ## v0.14.0 (2024-04-16)
 * Support dynamic log level in `Uinta.Plug`.
   * Option `:log` now accepts `{module, function, args}` tuple called with prepended `conn` to determine log level.
