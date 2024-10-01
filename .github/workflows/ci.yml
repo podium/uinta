@@ -10,7 +10,7 @@ on:
 
 jobs:
   setup:
-    runs-on: ${{ matrix.os }} 
+    runs-on: ${{ matrix.os }}
     env:
       MIX_ENV: test
 
@@ -18,13 +18,9 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04]
-        elixir_version: [1.14, 1.15, 1.16, 1.17]
+        elixir_version: [1.15, 1.16, 1.17]
         otp_version: [ 25, 26, 27]
         exclude:
-          - otp_version: 26
-            elixir_version: 1.14
-          - otp_version: 27
-            elixir_version: 1.14
           - otp_version: 27
             elixir_version: 1.15
           - otp_version: 27
