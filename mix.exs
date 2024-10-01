@@ -2,7 +2,7 @@ defmodule Uinta.MixProject do
   use Mix.Project
 
   @project_url "https://github.com/podium/uinta"
-  @version "0.14.0"
+  @version "0.15.0"
 
   def project do
     [
@@ -10,7 +10,7 @@ defmodule Uinta.MixProject do
       name: "Uinta",
       description: "Simpler structured logs and lower log volume for Elixir apps",
       version: @version,
-      elixir: "~> 1.13",
+      elixir: "~> 1.14",
       source_url: @project_url,
       homepage_url: @project_url,
       start_permanent: Mix.env() == :prod,
