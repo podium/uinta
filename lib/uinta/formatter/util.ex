@@ -59,7 +59,7 @@ defmodule Uinta.Formatter.Util do
   @doc """
   RFC3339 UTC "Zulu" format.
   """
-  @spec format_timestamp(Logger.Formatter.time()) :: String.t()
+  @spec format_timestamp(Types.time()) :: String.t()
   def format_timestamp({date, time}) do
     IO.iodata_to_binary([format_date(date), ?T, format_time(time), ?Z])
   end

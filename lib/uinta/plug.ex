@@ -98,7 +98,12 @@ if Code.ensure_loaded?(Plug) do
     @query_name_regex ~r/^\s*(?:query|mutation)\s+(\w+)|{\W+(\w+)\W+?{/m
 
     @type format :: :json | :map | :string
-    @type graphql_info :: %{type: String.t(), operation: String.t(), variables: String.t() | nil}
+    @type graphql_info :: %{
+            type: String.t(),
+            operation: String.t(),
+            variables: String.t(),
+            query: String.t() | nil
+          }
     @type opts :: %{
             level: Logger.level() | {module(), atom(), list()},
             format: format(),
@@ -217,7 +222,7 @@ if Code.ensure_loaded?(Plug) do
       end
     end
 
-    @spec format_line(map(), format()) :: iodata() | map()
+    @spec format_line(map(), format()) :: iodata() | map() | String.t()
     defp format_line(info, :map) do
       format_info(info)
     end
@@ -269,11 +274,11 @@ if Code.ensure_loaded?(Plug) do
 
     @spec query(graphql_info(), opts()) :: String.t() | nil
     defp query(_, %{include_unnamed_queries: false}), do: nil
-    defp query(%{query: query}, _), do: query
+    defp query(%{query: query}, _) when not is_nil(query), do: query
     defp query(_, _), do: nil
 
     @spec variables(graphql_info() | nil) :: String.t() | nil
-    defp variables(%{variables: variables}), do: variables
+    defp variables(%{variables: variables}) when not is_nil(variables), do: variables
     defp variables(_), do: nil
 
     @spec graphql_info(Plug.Conn.t(), opts()) :: graphql_info() | nil
