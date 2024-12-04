@@ -19,16 +19,19 @@ jobs:
       matrix:
         os: [ubuntu-22.04]
         elixir_version: [1.15, 1.16, 1.17]
-        otp_version: [25, 26, 27]
+        otp_version: [ 25, 26, 27]
         exclude:
           - otp_version: 27
             elixir_version: 1.15
           - otp_version: 27
             elixir_version: 1.16
+
     steps:
       - uses: actions/checkout@v4
 
-      - uses: erlef/setup-beam@v1
+      - name: Set up Elixir
+        id: beam
+        uses: erlef/setup-beam@v1
         with:
           otp-version: ${{matrix.otp_version}}
           elixir-version: ${{matrix.elixir_version}}
@@ -44,8 +47,6 @@ jobs:
 
       - run: mix deps.get
 
-      - run: mix format --check-formatted
-
       - run: mix deps.unlock --check-unused
 
       - run: mix deps.compile
@@ -55,3 +56,85 @@ jobs:
       - run: mix credo --strict --format=oneline
 
       - run: mix test --warnings-as-errors --cover
+
+  dialyzer:
+    runs-on: ubuntu-22.04
+    env:
+      MIX_ENV: dev
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Elixir
+        id: beam
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: 1.16
+          otp-version: 26
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            deps
+            _build
+          key: deps-${{ runner.os }}-${{ steps.beam.outputs.otp-version }}-${{ steps.beam.outputs.elixir-version }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: |
+            deps-${{ runner.os }}-${{ steps.beam.outputs.otp-version }}-${{ steps.beam.outputs.elixir-version }}
+
+      - run: mix deps.get
+
+      - name: Restore PLT cache
+        id: plt_cache_restore
+        uses: actions/cache/restore@v3
+        with:
+          key: |
+            plts-${{ runner.os }}-${{ steps.beam.outputs.otp-version }}-${{ steps.beam.outputs.elixir-version }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: |
+            plts-${{ runner.os }}-${{ steps.beam.outputs.otp-version }}-${{ steps.beam.outputs.elixir-version }}-
+          path: |
+            priv/plts
+
+      - name: Create PLTs
+        if: steps.plt_cache_restore.outputs.cache-hit != 'true'
+        run: mix dialyzer --plt
+
+      - name: Save PLT cache
+        id: plt_cache_save
+        if: steps.plt_cache_restore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v3
+        with:
+          key: |
+            plts-${{ runner.os }}-${{ steps.beam.outputs.otp-version }}-${{ steps.beam.outputs.elixir-version }}-${{ hashFiles('**/mix.lock') }}
+          path: |
+            priv/plts
+
+      - name: Run dialyzer
+        run: mix dialyzer --format github --format dialyxir
+
+  check_format:
+    runs-on: ubuntu-22.04
+    env:
+      MIX_ENV: dev
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Elixir
+        id: beam
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: 1.16
+          otp-version: 26
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            deps
+            _build
+          key: deps-${{ runner.os }}-${{ steps.beam.outputs.otp-version }}-${{ steps.beam.outputs.elixir-version }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: |
+            deps-${{ runner.os }}-${{ steps.beam.outputs.otp-version }}-${{ steps.beam.outputs.elixir-version }}
+
+      - run: mix deps.get
+
+      - run: mix format --check-formatted

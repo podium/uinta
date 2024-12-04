@@ -1,5 +1,10 @@
  # CHANGELOG
 
+## v0.15.1 (2024-12-04)
+
+### Changed
+
+* Fix dialyzer errors
 ## v0.15.0 (2024-10-01)
 
 ### Changed
