@@ -1,6 +1,7 @@
 defmodule Uinta.PlugTest do
   use ExUnit.Case
-  use Plug.Test
+  import Plug.Test
+  import Plug.Conn
 
   import ExUnit.CaptureLog
 
@@ -213,7 +214,7 @@ defmodule Uinta.PlugTest do
     assert message =~ ~r/client_ip: \"127.0.0.1\"/u
     assert message =~ ~r/duration_ms: [0-9]+\.?[0-9]+/u
     assert message =~ ~r/method: \"GET\"/u
-    assert message =~ ~r"path: \"/\""u
+    assert message =~ ~r/path: \"/\""u
     assert message =~ ~r/status: \"200\"/u
     assert message =~ ~r/timing: \"[0-9]+[µm]s\"/u
   end
@@ -227,7 +228,7 @@ defmodule Uinta.PlugTest do
     assert message =~ ~r/client_ip\":\"127.0.0.1\"/u
     assert message =~ ~r/duration_ms\":[0-9]+\.?[0-9]+/u
     assert message =~ ~r/method\":\"GET\"/u
-    assert message =~ ~r"path\":\"/\""u
+    assert message =~ ~r/path\":\"/\""u
     assert message =~ ~r/status\":\"200\"/u
     assert message =~ ~r/timing\":\"[0-9]+[µm]s\"/u
   end
@@ -241,7 +242,7 @@ defmodule Uinta.PlugTest do
     assert message =~ ~r/client_ip\":\"127.0.0.1\"/u
     assert message =~ ~r/duration_ms\":[0-9]+\.?[0-9]+/u
     assert message =~ ~r/method\":\"GET\"/u
-    assert message =~ ~r"path\":\"/\""u
+    assert message =~ ~r/path\":\"/\""u
     assert message =~ ~r/status\":\"200\"/u
     assert message =~ ~r/timing\":\"[0-9]+[µm]s\"/u
 
@@ -257,7 +258,7 @@ defmodule Uinta.PlugTest do
 
     params = %{
       "operationName" => "getUser",
-      "query" => "query totoQuery",
+      "query" => "query getUser",
       "variables" => variables
     }
 
@@ -268,7 +269,7 @@ defmodule Uinta.PlugTest do
 
     assert message =~ ~r/client_ip\":\"127.0.0.1\"/u
     assert message =~ ~r/duration_ms\":[0-9]+\.?[0-9]+/u
-    assert message =~ ~r"path\":\"/graphql\""u
+    assert message =~ ~r/path\":\"/graphql\""u
     assert message =~ ~r/status\":\"200\"/u
     assert message =~ ~r/timing\":\"[0-9]+[µm]s\"/u
     assert message =~ ~r/method\":\"QUERY\"/u
@@ -286,7 +287,7 @@ defmodule Uinta.PlugTest do
 
     assert message =~ ~r/client_ip\":\"127.0.0.1\"/u
     assert message =~ ~r/duration_ms\":[0-9]+\.?[0-9]+/u
-    assert message =~ ~r"path\":\"/graphql\""u
+    assert message =~ ~r/path\":\"/graphql\""u
     assert message =~ ~r/status\":\"200\"/u
     assert message =~ ~r/timing\":\"[0-9]+[µm]s\"/u
     assert message =~ ~r/method\":\"QUERY\"/u
@@ -313,7 +314,7 @@ defmodule Uinta.PlugTest do
 
     assert message =~ ~r/client_ip\":\"127.0.0.1\"/u
     assert message =~ ~r/duration_ms\":[0-9]+\.?[0-9]+/u
-    assert message =~ ~r"path\":\"/graphql\""u
+    assert message =~ ~r/path\":\"/graphql\""u
     assert message =~ ~r/status\":\"200\"/u
     assert message =~ ~r/timing\":\"[0-9]+[µm]s\"/u
     assert message =~ ~r/method\":\"MUTATION\"/u
