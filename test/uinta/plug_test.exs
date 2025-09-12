@@ -22,7 +22,7 @@ defmodule Uinta.PlugTest do
 
     plug(Uinta.Plug,
       success_log_sampling_ratio: 0,
-      sampled_status_codes: Enum.to_list(0..299) ++ [401]
+      sampled_status_codes: Uinta.Plug.default_sampled_status_codes() ++ [401]
     )
 
     plug(:passthrough)
@@ -554,12 +554,7 @@ defmodule Uinta.PlugTest do
     assert message =~ "MUTATION CreateReviewForEpisode"
   end
 
-  test "logs custom sampled status codes" do
-    message = capture_log(fn -> MyPlugWithCustomSampledStatusCodes.call(conn(:get, "/"), []) end)
-    refute message =~ "GET / - Sent 401 in [0-9]+[µm]s"
-  end
-
-  test "does not log custom sampled status codes when they are not in the list" do
+  test "does not log custom sampled status codes when they are in the configured sampled status codes" do
     message = capture_log(fn -> MyPlugWithCustomSampledStatusCodes.call(conn(:get, "/"), []) end)
     refute message =~ "GET / - Sent 401 in [0-9]+[µm]s"
   end

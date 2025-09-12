@@ -106,6 +106,15 @@ You can also perform log sampling by setting the `success_log_sampling_ratio`. F
 plug Uinta.Plug, success_log_sampling_ratio: 0.2
 ```
 
+You can also specify custom sampled status codes to be logged. This is useful if you want to sample out
+ more than just the default 1xx and 2xx status codes. The following is a 20% log sampling with custom sampled status codes:
+
+```elixir
+plug Uinta.Plug,
+  success_log_sampling_ratio: 0.2,
+  sampled_status_codes: Uinta.Plug.default_sampled_status_codes() ++ [401]
+```
+
 If your endpoint didn't call `Plug.Logger`, add the above line above the line
 that looks like this:
 

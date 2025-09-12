@@ -94,6 +94,22 @@ if Code.ensure_loaded?(Plug) do
 
     @default_filter ~w(password passwordConfirmation idToken refreshToken)
     @default_sampling_ratio 1.0
+    @default_sampled_status_codes [
+      100,
+      101,
+      102,
+      103,
+      200,
+      201,
+      202,
+      203,
+      204,
+      205,
+      206,
+      207,
+      208,
+      226
+    ]
 
     @query_name_regex ~r/^\s*(?:query|mutation)\s+(\w+)|{\W+(\w+)\W+?{/m
 
@@ -134,7 +150,8 @@ if Code.ensure_loaded?(Plug) do
         include_variables: Keyword.get(opts, :include_variables, false),
         filter_variables: Keyword.get(opts, :filter_variables, @default_filter),
         include_datadog_fields: Keyword.get(opts, :include_datadog_fields, false),
-        sampled_status_codes: Keyword.get(opts, :sampled_status_codes, 0..299),
+        sampled_status_codes:
+          Keyword.get(opts, :sampled_status_codes, @default_sampled_status_codes),
         success_log_sampling_ratio:
           Keyword.get(
             opts,
@@ -143,6 +160,19 @@ if Code.ensure_loaded?(Plug) do
           )
       }
     end
+
+    @doc """
+    Returns the default sampled status codes. These are all 1xx and 2xx status codes
+    according to the original HTTP RFC, and inclusions from the Wikipedia article on
+    HTTP status codes.
+
+    It's recommended to extend this list with your own status codes if you want to sample more than the default.
+
+    - [RFC](https://datatracker.ietf.org/doc/html/rfc2616#section-6.1.1)
+    - [Wikipedia](https://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
+    """
+    @spec default_sampled_status_codes() :: list(non_neg_integer())
+    def default_sampled_status_codes, do: @default_sampled_status_codes
 
     @impl Plug
     def call(conn, opts) do
