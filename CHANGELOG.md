@@ -1,5 +1,13 @@
  # CHANGELOG
 
+## v0.16.0 (2025-09-12)
+
+### Changed
+
+* Allows for custom sampled status codes to be specified. These are still honored
+  by the `success_log_sampling_ratio` option, even if they are not traditionally
+  'successful' status codes.
+
 ## v0.15.1 (2024-12-04)
 
 ### Changed

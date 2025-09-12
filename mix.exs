@@ -2,7 +2,7 @@ defmodule Uinta.MixProject do
   use Mix.Project
 
   @project_url "https://github.com/podium/uinta"
-  @version "0.15.1"
+  @version "0.16.0"
 
   def project do
     [

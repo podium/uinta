@@ -111,7 +111,8 @@ if Code.ensure_loaded?(Plug) do
             include_variables: boolean(),
             include_datadog_fields: boolean(),
             ignored_paths: list(String.t()),
-            filter_variables: list(String.t())
+            filter_variables: list(String.t()),
+            sampled_status_codes: list(non_neg_integer())
           }
 
     @impl Plug
@@ -133,6 +134,7 @@ if Code.ensure_loaded?(Plug) do
         include_variables: Keyword.get(opts, :include_variables, false),
         filter_variables: Keyword.get(opts, :filter_variables, @default_filter),
         include_datadog_fields: Keyword.get(opts, :include_datadog_fields, false),
+        sampled_status_codes: Keyword.get(opts, :sampled_status_codes, 0..299),
         success_log_sampling_ratio:
           Keyword.get(
             opts,
@@ -373,7 +375,7 @@ if Code.ensure_loaded?(Plug) do
 
     defp should_log_request?(conn, opts) do
       cond do
-        is_integer(conn.status) and conn.status >= 300 ->
+        is_integer(conn.status) and conn.status not in opts.sampled_status_codes ->
           # log all HTTP status >= 300 (usually errors)
           true
 

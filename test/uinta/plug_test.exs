@@ -17,6 +17,21 @@ defmodule Uinta.PlugTest do
     end
   end
 
+  defmodule MyPlugWithCustomSampledStatusCodes do
+    use Plug.Builder
+
+    plug(Uinta.Plug,
+      success_log_sampling_ratio: 0,
+      sampled_status_codes: Enum.to_list(0..299) ++ [401]
+    )
+
+    plug(:passthrough)
+
+    defp passthrough(conn, _) do
+      Plug.Conn.send_resp(conn, 401, "Passthrough")
+    end
+  end
+
   defmodule JsonPlug do
     use Plug.Builder
 
@@ -537,6 +552,16 @@ defmodule Uinta.PlugTest do
 
     message = capture_log(fn -> MyPlug.call(conn(:post, "/graphql", params), []) end)
     assert message =~ "MUTATION CreateReviewForEpisode"
+  end
+
+  test "logs custom sampled status codes" do
+    message = capture_log(fn -> MyPlugWithCustomSampledStatusCodes.call(conn(:get, "/"), []) end)
+    refute message =~ "GET / - Sent 401 in [0-9]+[µm]s"
+  end
+
+  test "does not log custom sampled status codes when they are not in the list" do
+    message = capture_log(fn -> MyPlugWithCustomSampledStatusCodes.call(conn(:get, "/"), []) end)
+    refute message =~ "GET / - Sent 401 in [0-9]+[µm]s"
   end
 
   test "includes the query when it isn't named" do
