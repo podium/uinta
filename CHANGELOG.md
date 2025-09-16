@@ -1,5 +1,15 @@
  # CHANGELOG
 
+## v0.16.0 (2025-09-12)
+
+### Changed
+
+* Allows for custom sampled status codes to be specified. These are still honored
+  by the `success_log_sampling_ratio` option, even if they may not be traditional
+  'successful' status codes.
+* Adds a `Uinta.Plug.default_sampled_status_codes/0` function to return the default sampled status codes.
+  These are now explicitly listed, instead of just being all 1xx and 2xx integers.
+
 ## v0.15.1 (2024-12-04)
 
 ### Changed
