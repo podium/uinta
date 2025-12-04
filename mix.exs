@@ -46,8 +46,8 @@ defmodule Uinta.MixProject do
     [
       main: "Uinta",
       extras: [
-        "CHANGELOG.md",
-        {:"README.md", title: "Readme"}
+        {:"README.md", title: "Readme"},
+        "CHANGELOG.md"
       ],
       source_url: @project_url,
       source_ref: "v#{@version}",
