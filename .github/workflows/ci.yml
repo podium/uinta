@@ -36,7 +36,7 @@ jobs:
           otp-version: ${{matrix.otp_version}}
           elixir-version: ${{matrix.elixir_version}}
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: |
             deps
@@ -72,7 +72,7 @@ jobs:
           elixir-version: 1.16
           otp-version: 26
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: |
             deps
@@ -85,7 +85,7 @@ jobs:
 
       - name: Restore PLT cache
         id: plt_cache_restore
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           key: |
             plts-${{ runner.os }}-${{ steps.beam.outputs.otp-version }}-${{ steps.beam.outputs.elixir-version }}-${{ hashFiles('**/mix.lock') }}
@@ -101,7 +101,7 @@ jobs:
       - name: Save PLT cache
         id: plt_cache_save
         if: steps.plt_cache_restore.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           key: |
             plts-${{ runner.os }}-${{ steps.beam.outputs.otp-version }}-${{ steps.beam.outputs.elixir-version }}-${{ hashFiles('**/mix.lock') }}
@@ -126,7 +126,7 @@ jobs:
           elixir-version: 1.16
           otp-version: 26
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: |
             deps
